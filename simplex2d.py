@@ -16,19 +16,22 @@ csv_file = "data2d.csv"
 x_length = 0.7
 num_of_nodes_x = 36
 num_of_nodes_y = 11
-k1 = 25E-8 # mu * fi / 2 dP
-k2 = 25E-10
-kxx = 1E-10
-kyy = 1E-10
+k1 = 1 # mu * fi / 2 dP (25E-8)
+k2 = 1
+kxx = 1
+kyy = 1
 np.set_printoptions(precision=2)
 np.set_printoptions(suppress=True)
 
 
 def darcy(x, kxx):
-    return x**2 * (k1 / kxx)
+    return x**2 * (k1 * kxx)
 
 def darcy2d(x, kxx, kyy):
-    return (x**2 * (k1 / kxx)) + (k2 / kyy)
+    return (x**2 * (k1 * kxx)) + (k2 * kyy)
+
+def darcy2d_a(x, kxx, kyy):
+    return (x**2 * (k1 * kxx)) + (k2 * kyy)
 
 # get the l2 norm of matrices
 def l2norm(x, y):
@@ -60,15 +63,15 @@ score = 0
 prev_score = 0
 
 threshold = 1
-gamma_xx = 0.6
+gamma_xx = 0.1
 gamma_yy = 0.2
-kxx = 1E-10 # starting point
-kyy = 1E-10 # starting point
+kxx = 1 # starting point
+kyy = 1 # starting point
 prev_kxx = 0
 prev_kyy = 0
 maxscore = 0
 
-n_of_steps = 1000
+n_of_steps = 100000
 
 for step in range(n_of_steps):
     # calculate the new s vectors
@@ -91,7 +94,7 @@ for step in range(n_of_steps):
     prev_kxx = kxx
     prev_kyy = kyy
     kxx = kxx - np.sign(prev_score - score) * deltakxx
-    kyy = kyy + np.sign(prev_score - score) * deltakyy
+    kyy = kyy - np.sign(prev_score - score) * deltakyy
 else:
     print("FAIL: could not find...")
 

@@ -12,15 +12,13 @@ DEBUG = True
 x_length = 0.7
 num_of_nodes_x = 36
 num_of_nodes_y = 10
-mu = 0.1
-fi = 0.5
-dP = 1E5
-kxx = 1E-10
+k1 = 1 # mu * fi / 2 dP
+kxx = 1
 np.set_printoptions(precision=2)
 np.set_printoptions(suppress=True)
 
 def darcy(x, kxx):
-    return x**2 * ((mu * fi) / (2 * kxx * dP))
+    return x**2 * (k1 * kxx)
 
 # get the l2 norm of matrices
 def l2norm(x, y):
@@ -58,7 +56,7 @@ prev_score = 0
 
 threshold = 1
 gamma = 0.2
-kxx = 1E-10 # starting point
+kxx = 1 # starting point
 prev_kxx = 0
 maxscore = 0
 
@@ -85,5 +83,6 @@ for step in range(n_of_steps):
     kxx = kxx - np.sign(prev_score - score) * deltakxx
 else:
     print("FAIL: could not find...")
+
 print("Target Combo:", target[0,:])
 print("Winning Combo:", s[0,:])
