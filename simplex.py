@@ -12,7 +12,7 @@ DEBUG = True
 x_length = 0.7
 num_of_nodes_x = 36
 num_of_nodes_y = 10
-mu = 0.2
+mu = 0.1
 fi = 0.5
 dP = 1E5
 kxx = 1E-10
@@ -59,9 +59,10 @@ prev_score = 0
 threshold = 1
 gamma = 0.2
 kxx = 1E-10 # starting point
+prev_kxx = 0
 maxscore = 0
 
-n_of_steps = 100
+n_of_steps = 1000
 
 for step in range(n_of_steps):
     # calculate the new s vectors
@@ -77,12 +78,12 @@ for step in range(n_of_steps):
     # normalize score based on the max we've seen.
     # so that deltakxx doesn't blow up
     maxscore = max(score, maxscore)
-    deltakxx = kxx * gamma * (score / (0.1 + maxscore))
-    print("{:2}, prev score: {:8.2f}, curr score: {:8.2f}, curr kxx: {}, delta kxx: {}".format(step, prev_score, score, kxx, deltakxx))
-    if score > prev_score:
-        kxx = kxx + deltakxx
-    else:
-        kxx = kxx - deltakxx
+    deltakxx = np.sign(prev_kxx - kxx) * kxx * gamma * (score / (0.1 + maxscore))
+    print("{:2}, ps: {:8.2f}, cs: {:8.2f}, pk: {}, ck: {}, dk: {}".format(step, prev_score, score, prev_kxx, kxx, deltakxx))
 
+    prev_kxx = kxx
+    kxx = kxx - np.sign(prev_score - score) * deltakxx
+else:
+    print("FAIL: could not find...")
 print("Target Combo:", target[0,:])
 print("Winning Combo:", s[0,:])
