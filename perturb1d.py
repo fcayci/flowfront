@@ -94,7 +94,7 @@ for t in range(n_of_runs):
         #print("{:2}, ps: {:8.2f}, cs: {:8.2f}, kxx: {:14.6f}, p_score: {:14.6f}".format(step, prev_score, score, kxx, p_score))
 
         if score < threshold:
-            #print("SUCCESS: achieved threshold < {}".format(threshold))
+            print("SUCCESS: solved in {} steps with threshold < {}".format(step, threshold))
             break
 
         if step % 2 == 0:
