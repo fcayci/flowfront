@@ -64,7 +64,7 @@ prev_score = 0
 
 threshold = 1
 gamma_xx = 0.1
-gamma_yy = 0.2
+gamma_yy = 0.01
 kxx = 1 # starting point
 kyy = 1 # starting point
 prev_kxx = 0
@@ -87,9 +87,9 @@ for step in range(n_of_steps):
     # normalize score based on the max we've seen.
     # so that deltakxx doesn't blow up
     maxscore = max(score, maxscore)
-    deltakxx = np.sign(prev_kxx - kxx) * kxx * gamma_xx * (score / (0.1 + maxscore))
-    deltakyy = np.sign(prev_kyy - kyy) * kyy * gamma_yy * (score / (0.1 + maxscore))
-    print("{:2}, ps: {:8.2f}, cs: {:8.2f}, kxx: {}, kyy: {}".format(step, prev_score, score, kxx, kyy))
+    deltakxx = np.sign(prev_kxx - kxx) * kxx * gamma_xx * (score / (0.1 + maxscore))**2
+    deltakyy = np.sign(prev_kyy - kyy) * kyy * gamma_yy * (score / (0.1 + maxscore))**2
+    print("{:2}, ps: {:8.2f}, cs: {:8.2f}, kxx: {:14.6f}, kyy: {:14.6f}, dkxx: {:14.6f}, dkyy: {:14.6f}".format(step, prev_score, score, kxx, kyy, deltakxx, deltakyy))
 
     prev_kxx = kxx
     prev_kyy = kyy

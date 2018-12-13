@@ -55,7 +55,7 @@ score = 0
 prev_score = 0
 
 threshold = 1
-gamma = 0.2
+gamma = 0.2 # should be less than 1
 kxx = 1 # starting point
 prev_kxx = 0
 maxscore = 0
@@ -77,7 +77,7 @@ for step in range(n_of_steps):
     # so that deltakxx doesn't blow up
     maxscore = max(score, maxscore)
     deltakxx = np.sign(prev_kxx - kxx) * kxx * gamma * (score / (0.1 + maxscore))
-    print("{:2}, ps: {:8.2f}, cs: {:8.2f}, pk: {}, ck: {}, dk: {}".format(step, prev_score, score, prev_kxx, kxx, deltakxx))
+    print("{:2}, ps: {:8.2f}, cs: {:8.2f}, kxx: {:14.6f}, dkxx: {:14.6f}".format(step, prev_score, score, kxx, deltakxx))
 
     prev_kxx = kxx
     kxx = kxx - np.sign(prev_score - score) * deltakxx

@@ -37,7 +37,7 @@ for i, node in enumerate(nodes):
 
 print('arrival times at each node:', s[0,:])
 
-plt.imshow(s, cmap="plasma", interpolation="nearest", origin="lower")
+plt.imshow(s, cmap="plasma", interpolation="nearest", origin="upper")
 plt.colorbar()
 plt.show()
 
