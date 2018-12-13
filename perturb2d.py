@@ -2,20 +2,21 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import numpy as np
 from numpy import linalg as LA
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
+import numpy as np
+from numpy import linalg as LA
 
 def darcy2d(x, y, kxx, kyy, A=1, B=1):
     return (x**2 * (A * kxx)) + (y**2 * (B * kyy))
 
-def flowgen2d(area, nodes, kz, coeffs=(1,1)):
+def flowgen2d(x_length, y_length, num_of_nodes_x, num_of_nodes_y, kxx=1, kyy=1, A=1, B=1):
 
-    nodes_x = np.linspace(0, area[1], nodes[0])
-    nodes_y = np.linspace(0, area[1], nodes[1])
-
-    print(len(nodes_x))
-    print(len(nodes_y))
+    nodes_x = np.linspace(0, x_length, num_of_nodes_x)
+    nodes_y = np.linspace(0, y_length, num_of_nodes_y)
 
     # create one dimensional array
-    s = np.zeros(nodes, dtype=float)
+    s = np.zeros((num_of_nodes_y, num_of_nodes_x), dtype=float)
 
     for i, x in enumerate(nodes_x):
         for j, y in enumerate(nodes_y):
@@ -36,24 +37,23 @@ np.set_printoptions(precision=2)
 np.set_printoptions(suppress=True)
 DEBUG = False
 
-target_area = (0.7, 0.2)
-target_nodes  = (11, 36)
-# A, B coeffs
-coeffs = (1, 1)
-# kx, ky values
-kz = (1, 1)
+x_length = 0.7
+y_length = 0.2
+num_of_nodes_x = 36
+num_of_nodes_y = 11
+A = 1
+B = 1
 
 n_of_runs = 100
 
-for t in range(0):
+for t in range(n_of_runs):
 
-    # generate a random kz pair
-    kz[0] = (np.random.random() + 1) * 1000
-    kz[1] = (np.random.random() + 1) * 1000
+    kxx = (np.random.random() + 1) * 1000
+    kyy = (np.random.random() + 1) * 1000
 
-    print('solving for kxx: {} and kyy: {}'.format(kz[0], kyy[0]))
+    print('solving for kxx: {} and kyy: {}'.format(kxx, kyy))
 
-    target = flowgen2d(target_area, target_nodes, kz, coeffs)
+    target = flowgen2d(x_length, y_length, num_of_nodes_x, num_of_nodes_y, kxx, kyy, A, B)
 
     if DEBUG:
         print('target flowfront:', target)
