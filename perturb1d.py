@@ -2,10 +2,6 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import numpy as np
 from numpy import linalg as LA
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
-import numpy as np
-from numpy import linalg as LA
 
 def darcy1d(x, kxx, A=1):
     return x**2 * (A * kxx)

@@ -2,10 +2,6 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import numpy as np
 from numpy import linalg as LA
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
-import numpy as np
-from numpy import linalg as LA
 
 def darcy2d(x, y, kxx, kyy, A=1, B=1):
     return (x**2 * (A * kxx)) + (y**2 * (B * kyy))
@@ -113,10 +109,6 @@ for t in range(n_of_runs):
         prev_score = score
         # calculate new score
         score = l2norm(s, target)
-        # if score < 0.01:
-        #     maxscore = 1
-        # elif score < 1:
-        #     maxscore = 10
         maxscore = max(score, maxscore)
         p_score = np.sign(prev_score - score)  * (score / (0.1 + maxscore))
 
