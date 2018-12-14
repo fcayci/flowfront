@@ -1,112 +1,96 @@
-## 2D solver
-
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
+## Simplex 2D solver
 import numpy as np
-from numpy import linalg as LA
+from common import *
 
-def darcy2d(x, y, kxx, kyy, A=1, B=1):
-    return (x**2 * (A * kxx)) + (y**2 * (B * kyy))
+if __name__ == "__main__":
 
-def flowgen2d(x_length, y_length, num_of_nodes_x, num_of_nodes_y, kxx=1, kyy=1, A=1, B=1):
+    np.set_printoptions(precision=2)
+    np.set_printoptions(suppress=True)
+    DEBUG = False
 
-    nodes_x = np.linspace(0, x_length, num_of_nodes_x)
-    nodes_y = np.linspace(0, y_length, num_of_nodes_y)
+    # parameters
+    AREA = (0.2, 0.7)
+    NUMBER_OF_NODES = (11, 36)
+    dims = 2
 
-    # create one dimensional array
-    s = np.zeros((num_of_nodes_y, num_of_nodes_x), dtype=float)
+    n_of_runs = 1
+    avg_iter = []
 
-    for i, x in enumerate(nodes_x):
-        for j, y in enumerate(nodes_y):
-            s[j,i] = darcy2d(x, y, kxx, kyy)
+    for t in range(n_of_runs):
 
-    return s
+        Starget = Stiffness(dim=dims, upper=1000, lower=900)
+        C = Coeffs(dims)
 
-def show_img(s):
-    plt.imshow(s, cmap="tab20b", interpolation="bicubic", origin="lower")
-    plt.colorbar()
-    plt.show()
+        if DEBUG:
+            print('choose kxx: {}, kyy: {}'.format(Starget.kx, Starget.ky))
 
-# get the l2 norm of matrices
-def l2norm(x, y):
-    return LA.norm(x-y)
+        target = flowgen2d(NUMBER_OF_NODES, AREA, Starget, C)
+        if DEBUG:
+            print('target flowfront:', target)
+            show_img(target)
 
-np.set_printoptions(precision=2)
-np.set_printoptions(suppress=True)
-DEBUG = True
+        # solver
+        ########
 
-x_length = 0.7
-y_length = 0.2
-num_of_nodes_x = 36
-num_of_nodes_y = 11
-A = 1
-B = 1
-kxx = 312.421
-kyy = 100.7325
+        # minimizing score (norm difference between vectors)
+        score = 0
+        prev_score = 0
 
-target = flowgen2d(x_length, y_length, num_of_nodes_x, num_of_nodes_y, kxx, kyy, A, B)
+        threshold = 0.1
+        gammax = 0.9 # should be less than 1
+        gammay = 0.9 # should be less than 1
+        stiff = Stiffness(dim=dims, upper=1000)
+        stiff_prev = Stiffness(dim=dims, upper=1)
+        C = Coeffs(dims)
+        deltakx = 0
+        deltaky = 0
+        maxscore = 0
 
-if DEBUG:
-   print('target flowfront:', target)
-   #show_img(target)
+        n_of_trials = 2000
 
-# solver
-########
+        swaptime = 100
+        xflag = True
 
-# minimizing score (norm difference between vectors)
-score = 0
-prev_score = 0
+        for trial in range(n_of_trials):
+            if trial % swaptime == 0:
+                xflag = not xflag
 
-threshold = 1
-gamma_xx = 0.4
-gamma_yy = 0.2
-kxx = 1 # starting point
-kyy = 1 # starting point
-prev_kxx = 0
-prev_kyy = 0
-deltakxx = 0
-deltakyy = 0
-maxscore = 0
-A=1
-B=1
+            # calculate the new flowfront
+            # will be replaced with LIMS
+            test = flowgen2d(NUMBER_OF_NODES, AREA, stiff, C)
+            # save previous score
+            prev_score = score
+            # calculate new score
+            score = l2norm(test, target)
+            # normalize score based on the max we've seen.
+            # so that deltakx doesn't blow up
+            maxscore = max(score, maxscore)
+            norm_score = np.sign(prev_score - score)  * (score / (0.1 + maxscore))
+            if xflag:
+                deltakx = np.sign(stiff_prev.kx - stiff.kx) * gammax * norm_score * stiff.kx
+            else:
+                deltaky = np.sign(stiff_prev.ky - stiff.ky) * gammay * norm_score * stiff.ky
 
-nodes_x = np.linspace(0, x_length, num_of_nodes_x)
-nodes_y = np.linspace(0, y_length, num_of_nodes_y)
-s = np.zeros((num_of_nodes_y, num_of_nodes_x), dtype=float)
+            print("{:5}, ps: {:8.2f}, cs: {:8.2f}, kxx: {:14.6f}, kyy: {:14.6f}, dkxx: {:14.6f}, dkyy: {:14.6f}, norm_score: {:14.6f}".format(trial, prev_score, score, stiff.kx, stiff.ky, deltakx, deltaky, norm_score))
 
-n_of_steps = 2000
+            if score < threshold:
+                avg_iter.append(trial)
+                print("{:5}: solved kx: {:14.6f}, ky: {:14.6f} in {:5} trials with threshold < {}".format(t, Starget.kx, Starget.ky, trial, threshold))
+                break
 
-for step in range(n_of_steps):
-    # This part will be handed off to LIMS
-    #   We will get the new s matrix in return
-    # calculate the new s vectors
-    for i, x in enumerate(nodes_x):
-        for j, y in enumerate(nodes_y):
-            s[j,i] = darcy2d(x, y, kxx, kyy, A, B)
+            if xflag:
+                stiff_prev.kx = stiff.kx
+                stiff.kx = stiff.kx - deltakx
+            else:
+                stiff_prev.ky = stiff.ky
+                stiff.ky = stiff.ky - deltaky
 
-    # save previous score
-    prev_score = score
-    # calculate new score
-    score = l2norm(s, target)
-    if score < threshold:
-        print("Success: achieved threshold < {}".format(threshold))
-        break
+        else:
+            print("FAIL: could not find... for kx: {}, ky: {}".format(Starget.kx, Starget.ky))
+            print("{:5}, kxx: {:14.6f}, kyy: {:14.6f}, score: {:8.2f} -> {:8.2f}, deltakx: {:14.6f}, deltaky: {:14.6f}".format(trial, stiff.kx, stiff.ky, prev_score, score, deltakx, deltaky))
+            break
+    else:
+        print("SUCCESS: solved {} runs with {} threshold achievement in average: {}".format(n_of_runs, threshold, np.mean(avg_iter)))
 
-    # normalize score based on the max we've seen.
-    # so that deltakxx doesn't blow up
-    maxscore = max(score, maxscore)
-    p_score = (score / (0.1 + maxscore))
-    deltakxx = np.sign(prev_kxx - kxx) * kxx * gamma_xx * p_score
-    deltakyy = np.sign(prev_kyy - kyy) * kyy * gamma_yy * p_score
-    print("{:6}, ps: {:8.2f}, cs: {:8.2f}, kxx: {:14.6f}, kyy: {:14.6f}, dkxx: {:14.6f}, dkyy: {:14.6f}, p_score: {:14.6f}".format(step, prev_score, score, kxx, kyy, deltakxx, deltakyy, p_score))
-
-    prev_kxx = kxx
-    kxx = kxx - np.sign(prev_score - score) * deltakxx
-    prev_kyy = kyy
-    kyy = kyy - np.sign(prev_score - score) * deltakyy
-
-else:
-    print("FAIL: could not find...")
-
-print("Target Combo:", target[5,:])
-print("Winning Combo:", s[5,:])
+        #print("Target Combo:", target[0,:])
+        # print("Winning Combo:", s[0,:])

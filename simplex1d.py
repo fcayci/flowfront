@@ -1,88 +1,79 @@
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
+# Simplex 1D solver
+
 import numpy as np
-from numpy import linalg as LA
+from common import *
 
-def darcy1d(x, kxx, A=1):
-    return x**2 * (A * kxx)
+if __name__ == "__main__":
 
-def flowgen1d(x_length, num_of_nodes_x, num_of_nodes_y, kxx=1, A=1):
+    np.set_printoptions(precision=2)
+    np.set_printoptions(suppress=True)
+    DEBUG = False
 
-    s = np.zeros((num_of_nodes_y, num_of_nodes_x), dtype=float)
+    # parameters
+    AREA = (0.2, 0.7)
+    NUMBER_OF_NODES = (11, 36)
+    dims = 1
 
-    nodes_x = np.linspace(0, x_length, num_of_nodes_x)
-    for i, x in enumerate(nodes_x):
-        s[:,i] = darcy1d(x, kxx, A)
+    n_of_runs = 10000
+    avg_iter = []
 
-    return s
+    for t in range(n_of_runs):
 
-def show_img(s):
-    plt.imshow(s, cmap="tab20b", interpolation="bicubic", origin="lower")
-    plt.colorbar()
-    plt.show()
+        Starget = Stiffness(dim=dims, upper=1000000, lower=1)
+        C = Coeffs(dims)
 
-# get the l2 norm of matrices
-def l2norm(x, y):
-    return LA.norm(x-y)
+        if DEBUG: print('choose kxx:', Starget.kx)
 
-np.set_printoptions(precision=2)
-np.set_printoptions(suppress=True)
-DEBUG = True
+        target = flowgen1d(NUMBER_OF_NODES, AREA, Starget, C)
+        if DEBUG:
+            print('target flowfront:', target[0,:])
+            show_img(target)
 
-x_length = 0.7
-num_of_nodes_x = 36
-num_of_nodes_y = 10
-A = 1
-B = 1
-kxx = 124.319
+        # solver
+        ########
 
-target = flowgen1d(x_length, num_of_nodes_x, num_of_nodes_y, kxx, A)
+        # minimizing score (norm difference between vectors)
+        score = 0
+        prev_score = 0
 
-if DEBUG:
-   print('target flowfront:', target)
-   #show_img(target)
+        threshold = 0.1
+        gammax = 0.9 # should be less than 1
+        stiff = Stiffness(dim=dims, upper=1000)
+        stiff_prev = Stiffness(dim=dims, upper=1)
+        deltakxx = 0
+        maxscore = 0
+        A=1
 
-# solver
-########
+        n_of_trials = 20000
 
-# minimizing score (norm difference between vectors)
-score = 0
-prev_score = 0
+        for trial in range(n_of_trials):
+            # calculate the new flowfront
+            # will be replaced with LIMS
+            test = flowgen1d(NUMBER_OF_NODES, AREA, stiff, C)
+            # save previous score
+            prev_score = score
+            # calculate new score
+            score = l2norm(test, target)
+            # normalize score based on the max we've seen.
+            # so that deltakxx doesn't blow up
+            maxscore = max(score, maxscore)
+            norm_score = np.sign(prev_score - score)  * (score / (0.1 + maxscore))
+            deltakxx = np.sign(stiff_prev.kx - stiff.kx) * gammax * norm_score * stiff.kx
+            #print("{:5},  kxx: {:14.6f}, score: {:8.2f} -> {:8.2f}, deltakxx: {:10.6f}".format(trial, stiff.kx, prev_score, score, deltakxx))
 
-threshold = 1
-gamma = 0.2 # should be less than 1
-kxx = 1 # starting point
-prev_kxx = 0
-deltakxx = 0
-maxscore = 0
-A=1
+            if score < threshold:
+                avg_iter.append(trial)
+                print("{:5}: solved {:14.6f} in {:5} trials with threshold < {}".format(t, Starget.kx, trial, threshold))
+                break
 
-nodes = np.linspace(0, x_length, num_of_nodes_x)
-s = np.zeros((num_of_nodes_y, num_of_nodes_x), dtype=float)
+            stiff_prev.kx = stiff.kx
+            stiff.kx = stiff.kx - deltakxx
+        else:
+            print("FAIL: could not find... for kxx: {}".format(Starget.kx))
+            print("{:5}, kxx: {:14.6f}, score: {:8.2f} -> {:8.2f}, deltakxx: {:14.6f}".format(trial, stiff.kx, prev_score, score, deltakxx))
+            break
+    else:
+        print("SUCCESS: solved {} runs with {} threshold achievement in average: {}".format(n_of_runs, threshold, np.mean(avg_iter)))
 
-n_of_steps = 1000
-
-for step in range(n_of_steps):
-    # calculate the new s vectors
-    for i, node in enumerate(nodes):
-        s[:,i] = darcy1d(node, kxx, A)
-    # save previous score
-    prev_score = score
-    # calculate new score
-    score = l2norm(s, target)
-    if score < threshold:
-        print("SUCCESS: achieved threshold < {}".format(threshold))
-        break
-    # normalize score based on the max we've seen.
-    # so that deltakxx doesn't blow up
-    maxscore = max(score, maxscore)
-    deltakxx = np.sign(prev_kxx - kxx) * kxx * gamma * (score / (0.1 + maxscore))
-    print("{:2}, ps: {:8.2f}, cs: {:8.2f}, kxx: {:14.6f}, dkxx: {:14.6f}".format(step, prev_score, score, kxx, deltakxx))
-
-    prev_kxx = kxx
-    kxx = kxx - np.sign(prev_score - score) * deltakxx
-else:
-    print("FAIL: could not find...")
-
-print("Target Combo:", target[0,:])
-print("Winning Combo:", s[0,:])
+        #print("Target Combo:", target[0,:])
+        # print("Winning Combo:", s[0,:])
