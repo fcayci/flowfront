@@ -14,7 +14,7 @@ if __name__ == "__main__":
     NUMBER_OF_NODES = (11, 36)
     dims = 1
 
-    n_of_runs = 10000
+    n_of_runs = 100
     avg_iter = []
 
     for t in range(n_of_runs):
@@ -68,10 +68,12 @@ if __name__ == "__main__":
 
             stiff_prev.kx = stiff.kx
             stiff.kx = stiff.kx - deltakxx
+
         else:
             print("FAIL: could not find... for kxx: {}".format(Starget.kx))
             print("{:5}, kxx: {:14.6f}, score: {:8.2f} -> {:8.2f}, deltakxx: {:14.6f}".format(trial, stiff.kx, prev_score, score, deltakxx))
             break
+
     else:
         print("SUCCESS: solved {} runs with {} threshold achievement in average: {}".format(n_of_runs, threshold, np.mean(avg_iter)))
 

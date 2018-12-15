@@ -1,150 +1,120 @@
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
 import numpy as np
-from numpy import linalg as LA
+from common import *
 
-def darcy2d(x, y, kxx, kyy, A=1, B=1):
-    return (x**2 * (A * kxx)) + (y**2 * (B * kyy))
+if __name__ == "__main__":
 
-def flowgen2d(x_length, y_length, num_of_nodes_x, num_of_nodes_y, kxx=1, kyy=1, A=1, B=1):
+    np.set_printoptions(precision=2)
+    np.set_printoptions(suppress=True)
+    DEBUG = False
 
-    nodes_x = np.linspace(0, x_length, num_of_nodes_x)
-    nodes_y = np.linspace(0, y_length, num_of_nodes_y)
+    # parameters
+    AREA = (0.2, 1.0)
+    NUMBER_OF_NODES = (11, 36)
+    dims = 2
 
-    # create one dimensional array
-    s = np.zeros((num_of_nodes_y, num_of_nodes_x), dtype=float)
+    n_of_runs = 1
+    avg_iter = []
 
-    for i, x in enumerate(nodes_x):
-        for j, y in enumerate(nodes_y):
-            s[j,i] = darcy2d(x, y, kxx, kyy)
+    for t in range(n_of_runs):
 
-    return s
+        Starget = Stiffness(dim=dims, upper=1000, lower=1)
+        Ctarget = Coeffs(dims)
 
-def show_img(s):
-    plt.imshow(s, cmap="tab20b", interpolation="bicubic", origin="lower")
-    plt.colorbar()
-    plt.show()
+        if DEBUG:
+            print('choose kxx: {}, kyy: {}'.format(Starget.kx, Starget.ky))
 
-# get the l2 norm of matrices
-def l2norm(x, y):
-    return LA.norm(x-y)
+        target = flowgen2d(NUMBER_OF_NODES, AREA, Starget, Ctarget)
 
-np.set_printoptions(precision=2)
-np.set_printoptions(suppress=True)
-DEBUG = False
+        if DEBUG:
+            print('target flowfront:', target)
+            show_img(target)
 
-x_length = 0.7
-y_length = 0.2
-num_of_nodes_x = 36
-num_of_nodes_y = 11
-A = 1
-B = 1
 
-n_of_runs = 100
+        # solver
+        ########
 
-for t in range(n_of_runs):
+        # gradient descent
+        # 1. perturb for direction
+        # 1. jump for faster converge
+        # kxx(t+1) = kxx(t) - gain * F(J)
 
-    kxx = (np.random.random() + 1) * 1000
-    kyy = (np.random.random() + 1) * 1000
+        # minimizing J (norm difference between vectors)
+        score = 0
+        prev_score = 0
+        norm_score = 0
 
-    print('solving for kxx: {} and kyy: {}'.format(kxx, kyy))
+        threshold = 0.1
+        gamma_l = 1000 # 0.01 * NUMBER_OF_NODES[0] * NUMBER_OF_NODES[1]
+        gamma_s = 60 # 0.6 * NUMBER_OF_NODES[0] * NUMBER_OF_NODES[1]
+        stiff = Stiffness(dim=dims, upper=1)
+        Ctest = Coeffs(dims)
+        perturbx = 0
+        perturby = 0
+        gainx = 0
+        gainy = 0
+        maxscore = 0
 
-    target = flowgen2d(x_length, y_length, num_of_nodes_x, num_of_nodes_y, kxx, kyy, A, B)
+        n_of_trials = 10000
 
-    if DEBUG:
-        print('target flowfront:', target)
-    #show_img(target)
+        # keep optimization on single parameter
+        # and swap parameters every so often (swaptime trial)
+        swaptime = 4 * 15
+        xflag = False
 
-    # solver
-    ########
+        for trial in range(n_of_trials):
 
-    # gradient descent
-    # 1. perturb for direction
-    # 1. jump for faster converge
-    # kxx(t+1) = kxx(t) - gain * F(J)
+            if trial % swaptime == 0:
+                xflag = not xflag
 
-    # minimizing J (norm difference between vectors)
-    score = 0
-    prev_score = 0
+            # calculate the new flowfront
+            # will be replaced with LIMS
+            test = flowgen2d(NUMBER_OF_NODES, AREA, stiff, Ctest)
+            # save previous score
+            prev_score = score
+            # calculate new score
+            score = l2norm(test, target)
+            maxscore = max(score, maxscore)
+            norm_score = (score / (0.1 + maxscore))
+            print("{:5}, kxx: {:8.3f}, kyy: {:8.3f}, score: {:9.5f} -> {:9.5f}, norm_score: {:7.6f}, pertx: {: 2.4f}, gainx: {: 2.4f}, perty: {: 2.4f}, gainy: {: 2.4f}".format(trial, stiff.kx, stiff.ky, prev_score, score, norm_score, perturbx, gainx, perturby, gainy))
 
-    threshold = 1
-    gamma_l = 0.9
-    gamma_s = 0.5
-    kxx = 1 # starting point
-    kyy = 1 # starting point
-    prev_kxx = 0
-    prev_kyy = 0
-    perturbx = 0
-    perturby = 0
-    gainx = 0
-    gainy = 0
-    diff_score = 0
-    maxscore = 0
-    A = 1
-    B = 1
+            if score < threshold:
+                avg_iter.append(trial)
+                print("{:5}: target kx: {:14.6f}, ky: {:14.6f}, {:.6f}, {:.6f}".format(trial, Starget.kx, Starget.ky, Ctarget.x, Ctarget.y))
+                print("{:5}: solved kx: {:14.6f}, ky: {:14.6f}, {:.6f}, {:.6f} in {:5} trials with threshold < {}".format(trial, stiff.kx, stiff.ky, Ctest.x, Ctest.y, trial, threshold))
+                show_img_on(test, target)
+                break
 
-    nodes_x = np.linspace(0, x_length, num_of_nodes_x)
-    nodes_y = np.linspace(0, y_length, num_of_nodes_y)
-    s = np.zeros((num_of_nodes_y, num_of_nodes_x), dtype=float)
+            if trial % 2 == 0:
+                # small perturb to figure out if going the correct direction
+                if xflag:
+                    perturbx = gamma_s * (np.random.random() - 0.5) * norm_score # * stiff.kx
+                    stiff.kx = stiff.kx - perturbx
+                else:
+                    perturby = gamma_s * (np.random.random() - 0.5) * norm_score # * stiff.ky
+                    stiff.ky = stiff.ky - perturby
+                if DEBUG:
+                    print("pertx: {}, perty: {}, kx: {}, ky: {}".format(perturbx, perturby, stiff.kx, stiff.ky))
 
-    n_of_steps = 10000
-
-    # keep optimization on single paramter
-    # and swap parameters every so often (swaptime steps)
-    swaptime = 100
-    xflag = False
-
-    for step in range(n_of_steps):
-
-        if step % swaptime == 0:
-            xflag = not xflag
-        # This part will be handed off to LIMS
-        #   We will get the new s matrix in return
-        # calculate the new s vectors
-        for i, x in enumerate(nodes_x):
-            for j, y in enumerate(nodes_y):
-                s[j,i] = darcy2d(x, y, kxx, kyy, A, B)
-
-        # save previous score
-        prev_score = score
-        # calculate new score
-        score = l2norm(s, target)
-        maxscore = max(score, maxscore)
-        p_score = np.sign(prev_score - score)  * (score / (0.1 + maxscore))
-
-        if score < threshold:
-            print("SUCCESS: solved in {} steps with threshold < {}".format(step, threshold))
-            break
-
-        if step % 2 == 0:
-            # small perturb to figure out if going the correct direction
-            if xflag:
-                perturbx = gamma_s * kxx * (np.random.random() - 0.5) * p_score
-                kxx = kxx - perturbx
             else:
-                perturby = gamma_s * kyy * (np.random.random() - 0.5) * p_score
-                kyy = kyy - perturby
-            if DEBUG:
-                print("pertx: {}, perty: {}, kxx: {}, kyy: {}".format(perturbx, perturby, kxx, kyy))
+                # jump the direction
+                if xflag:
+                    gainx = np.sign(perturbx) * gamma_l * np.sign(prev_score - score) * norm_score # * stiff.kx
+                    stiff.kx = stiff.kx - gainx
+                else:
+                    gainy = np.sign(perturby) * gamma_l * np.sign(prev_score - score) * norm_score # * stiff.ky
+                    stiff.ky = stiff.ky - gainy
+                if DEBUG:
+                    print("pertx: {}, perty: {}, kx: {}, ky: {}".format(gainx, gainy, stiff.kx, stiff.ky))
+
+            #print("{:6}, ps: {:8.2f}, cs: {:8.2f}, kxx: {:14.6f}, kyy: {:14.6f}, pertx: {:10.4f}, perty: {:10.4f}, gainx: {:10.4f}, gainy: {:10.4f}, p_score: {:10.4f}".format(trial, prev_score, score, kxx, kyy, perturbx, perturby, gainx, gainy, p_score))
 
         else:
-            # jump the direction
-            if xflag:
-                gainx = np.sign(perturbx) * gamma_l * kxx * p_score
-                kxx = kxx - gainx
-            else:
-                gainy = np.sign(perturby) * gamma_l * kyy * p_score
-                kyy = kyy - gainy
-            if DEBUG:
-                print("leapx: {}, leapy: {}, kxx: {}, kyy: {}".format(gainx, gainy, kxx, kyy))
-
-        #print("{:6}, ps: {:8.2f}, cs: {:8.2f}, kxx: {:14.6f}, kyy: {:14.6f}, pertx: {:10.4f}, perty: {:10.4f}, gainx: {:10.4f}, gainy: {:10.4f}, p_score: {:10.4f}".format(step, prev_score, score, kxx, kyy, perturbx, perturby, gainx, gainy, p_score))
+            print("FAIL: could not find... for kx: {}, ky: {}".format(Starget.kx, Starget.ky))
+            print("{:5}, kxx: {:14.6f}, kyy: {:14.6f}, score: {:8.2f} -> {:8.2f}".format(trial, stiff.kx, stiff.ky, prev_score, score))
+            break
 
     else:
-        print("FAIL: could not find...")
-        break
-else:
-    print("SUCCESS: solved {} runs with {} threshold achievement".format(n_of_runs, threshold))
+        print("SUCCESS: solved {} runs with {} threshold achievement in average: {}".format(n_of_runs, threshold, np.mean(avg_iter)))
 
-#print("Target Combo:", target[0,:])
-#print("Winning Combo:", s[0,:])
+        #print("Target Combo:", target[0,:])
+        # print("Winning Combo:", s[0,:])

@@ -29,10 +29,10 @@ class Coeffs():
         """create and initialize coeffs with the given lower / upper limits"""
 
         self.dim = dim
-        if dim >= 1: self.x = randomize(lower, upper)
-        if dim >= 2: self.y = randomize(lower, upper)
-        if dim >= 3: self.z = randomize(lower, upper)
-        if dim >= 4: self.r = randomize(lower, upper)
+        if dim >= 1: self.x = 0.7 #randomize(lower, upper)
+        if dim >= 2: self.y = 0.7 #randomize(lower, upper)
+        if dim >= 3: self.z = 0.7 #randomize(lower, upper)
+        if dim >= 4: self.r = 0.7 #randomize(lower, upper)
 
 
 def randomize(lower=1E-10, upper=1):
@@ -105,7 +105,28 @@ def l1norm(x, y):
 
 
 def show_img(t):
-    from matplotlib.pyplot import imshow, colorbar, show
-    imshow(t, cmap="tab20b", interpolation="bicubic", origin="lower")
-    colorbar()
-    show()
+    import matplotlib.pyplot as plt
+    plt.imshow(t, cmap="tab20b", interpolation="bicubic", origin="lower")
+    plt.colorbar()
+    plt.show()
+
+
+def compare_img(a, b):
+    import matplotlib.pyplot as plt
+
+    plt.subplot(211)
+    plt.imshow(a, cmap="tab20b", interpolation="bicubic", origin="lower")
+    plt.subplot(212)
+    plt.imshow(b, cmap="tab20b", interpolation="bicubic", origin="lower")
+    plt.show()
+
+
+def show_img_on(a, b):
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure(frameon=True)
+    plt.imshow(a, cmap="tab20b", interpolation="bicubic", origin="lower")
+    #plt.colorbar()
+    plt.imshow(b, cmap="tab20b", interpolation="bicubic", origin="lower", alpha=.7)
+    #plt.colorbar()
+    plt.show()

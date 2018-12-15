@@ -9,7 +9,7 @@ if __name__ == "__main__":
     DEBUG = False
 
     # parameters
-    AREA = (0.2, 0.7)
+    AREA = (0.2, 1.0)
     NUMBER_OF_NODES = (11, 36)
     dims = 2
 
@@ -18,13 +18,13 @@ if __name__ == "__main__":
 
     for t in range(n_of_runs):
 
-        Starget = Stiffness(dim=dims, upper=1000, lower=900)
-        C = Coeffs(dims)
+        Starget = Stiffness(dim=dims, upper=1000, lower=1)
+        Ctarget = Coeffs(dims)
 
         if DEBUG:
             print('choose kxx: {}, kyy: {}'.format(Starget.kx, Starget.ky))
 
-        target = flowgen2d(NUMBER_OF_NODES, AREA, Starget, C)
+        target = flowgen2d(NUMBER_OF_NODES, AREA, Starget, Ctarget)
         if DEBUG:
             print('target flowfront:', target)
             show_img(target)
@@ -37,18 +37,18 @@ if __name__ == "__main__":
         prev_score = 0
 
         threshold = 0.1
-        gammax = 0.9 # should be less than 1
-        gammay = 0.9 # should be less than 1
+        gammax = 0.6 # should be less than 1
+        gammay = 0.4 # should be less than 1
         stiff = Stiffness(dim=dims, upper=1000)
         stiff_prev = Stiffness(dim=dims, upper=1)
-        C = Coeffs(dims)
+        Ctest = Coeffs(dims)
         deltakx = 0
         deltaky = 0
         maxscore = 0
 
-        n_of_trials = 2000
+        n_of_trials = 10000
 
-        swaptime = 100
+        swaptime = 50
         xflag = True
 
         for trial in range(n_of_trials):
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
             # calculate the new flowfront
             # will be replaced with LIMS
-            test = flowgen2d(NUMBER_OF_NODES, AREA, stiff, C)
+            test = flowgen2d(NUMBER_OF_NODES, AREA, stiff, Ctest)
             # save previous score
             prev_score = score
             # calculate new score
@@ -75,7 +75,9 @@ if __name__ == "__main__":
 
             if score < threshold:
                 avg_iter.append(trial)
-                print("{:5}: solved kx: {:14.6f}, ky: {:14.6f} in {:5} trials with threshold < {}".format(t, Starget.kx, Starget.ky, trial, threshold))
+                print("{:5}: solved kx: {:14.6f}, ky: {:14.6f}, {:.6f}, {:.6f} in {:5} trials with threshold < {}".format(t, Starget.kx, Starget.ky, Ctarget.x, Ctarget.y, trial, threshold))
+                print("{:5}: solved kx: {:14.6f}, ky: {:14.6f}, {:.6f}, {:.6f} in {:5} trials with threshold < {}".format(t, stiff.kx, stiff.ky, Ctest.x, Ctest.y, trial, threshold))
+                #show_img_on(test, target)
                 break
 
             if xflag:

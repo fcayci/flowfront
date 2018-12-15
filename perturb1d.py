@@ -41,7 +41,7 @@ if __name__ == "__main__":
         norm_score = 0
 
         threshold = 0.1
-        gamma_l = 2000
+        gamma_l = 800
         gamma_s = 0.6
         stiff = Stiffness(dim=dims, upper=1)
         C = Coeffs(dims)
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         gain = 0
         maxscore = 0
 
-        n_of_trials = 1000
+        n_of_trials = 10000
 
         for trial in range(n_of_trials):
 
