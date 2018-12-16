@@ -4,7 +4,7 @@
 #    l2norm(ff_target - ff_trial)
 
 import numpy as np
-from common import show_imgs, overlay_imgs
+from common import show_imgs
 
 # 1d function
 d1d = lambda x, kx, a: x**2 * (kx * a)

@@ -37,7 +37,7 @@ for run in range(n_of_runs):
     ky = 1
     ky_prev = 2
     ky_sign = 0
-    pert = 0.22
+    pert = 0.42
     leap = 0.33
     cost = 0
     cost_prev = 0
@@ -45,10 +45,11 @@ for run in range(n_of_runs):
     for t in range(n_of_iters):
 
         ff = d2d(y, x, kx, ky, a, b)
-        kx_sign = np.sign(kx_prev - kx)
-        ky_sign = np.sign(ky_prev - ky)
 
+        kx_sign = np.sign(kx_prev - kx)
         kx_norm = abs(kx_prev - kx) / max(kx_prev, kx)
+
+        ky_sign = np.sign(ky_prev - ky)
         ky_norm = abs(ky_prev - ky) / max(ky_prev, ky)
 
         cost_prev = cost
@@ -66,19 +67,23 @@ for run in range(n_of_runs):
         if t % 2 == 0:
             # perturb
             kx_prev = kx
-            ky_prev = ky
             pkx = pert * (np.random.random()-0.5)
-            pky = pert * (np.random.random()-0.5)
             kx -= pkx
+
+            ky_prev = ky
+            pky = pert * (np.random.random()-0.5)
             ky -= pky
+
             print('p kx: {: 16.8f}, p ky: {: 16.8f}'.format(pkx, pky))
 
         else:
             # leap
             lkx = leap * kx_sign * np.sign(cost_prev - cost) * cost
-            lky = leap * ky_sign * np.sign(cost_prev - cost) * cost
             kx -= lkx
+
+            lky = leap * ky_sign * np.sign(cost_prev - cost) * cost
             ky -= lky
+
             print('l kx: {: 16.8f}, l ky: {: 16.8f}'.format(lkx, lky))
 
     else:
