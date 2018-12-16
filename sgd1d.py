@@ -1,5 +1,5 @@
 # author: Furkan Cayci
-# description: gradient descent method
+# description: stochastic gradient descent method
 #   cost function is
 #    l2norm(ff_target - ff_trial)
 
@@ -19,31 +19,35 @@ for run in range(n_of_runs):
 
     # Create target vectors
     kx_t = ((np.random.random()+1.1) * 1E6)
-    a = np.random.random()
+    a = 1 #np.random.random()
     ff_t = d1d(y, kx_t, a)
 
     # create parameters
-    n_of_iters = 1000
-    threshold = 1E-7
+    n_of_iters = 40
+    threshold = 0.1
 
     ff = np.empty_like(ff_t)
     b = 1
     kx = 1
     kx_prev = 2
     kx_sign = 0
-    gammax = 0.22
+    pertx = 0.02
+    leapx = 0.22
     cost = 0
     cost_prev = 0
+    perturb = 0
+    leap = 0
 
     for t in range(n_of_iters):
 
         ff = d1d(y, kx, b)
         kx_sign = np.sign(kx_prev - kx)
+        kx_norm = abs(kx_prev - kx) / max(kx_prev, kx)
 
         cost_prev = cost
         cost = np.linalg.norm(ff_t - ff, 2)
 
-        print('{:5}: kx: {:14.4f}, cost: {}'.format(t, kx, cost))
+        print('{:5}: cost: {:14.6f}, kx: {:14.6f}, kxnorm: {: 10.9f}'.format(t, cost, kx, kx_norm))
 
         if cost < threshold:
             print('Success in {} iterations'.format(t))
@@ -52,8 +56,13 @@ for run in range(n_of_runs):
             #show_imgs(ff_t, ff)
             break
 
-        kx_prev = kx
-        kx -= kx_sign * np.sign(cost_prev - cost) * gammax * cost
+        if t % 2 == 0:
+            # perturb
+            kx_prev = kx
+            kx -= pertx * (np.random.random()-0.5) * kx_norm
+        else:
+            # leap
+            kx -= leapx * kx_sign * np.sign(cost_prev - cost) * cost
 
     else:
         print('cost: {}, kx_t: {}, kx: {}, a: {}, b: {}'.format(cost, kx_t, kx, a, b))
