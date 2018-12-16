@@ -1,5 +1,5 @@
 # author: Furkan Cayci
-# description: stochastic gradient descent method
+# description: stochastic gradient descent method 1d
 #   cost function is
 #    l2norm(ff_target - ff_trial)
 
@@ -12,7 +12,7 @@ d1d = lambda x, kx, a: x**2 * (kx * a)
 #AREA = (0.2, 0.7)
 #NUMBER_OF_NODES = (11, 36)
 x, y = np.mgrid[0:0.2:11j, 0:0.7:36j]
-n_of_runs = 1000
+n_of_runs = 10
 trials = []
 
 for run in range(n_of_runs):
@@ -31,12 +31,10 @@ for run in range(n_of_runs):
     kx = 1
     kx_prev = 2
     kx_sign = 0
-    pertx = 0.02
-    leapx = 0.22
+    pert = 0.08
+    leap = 0.22
     cost = 0
     cost_prev = 0
-    perturb = 0
-    leap = 0
 
     for t in range(n_of_iters):
 
@@ -47,7 +45,7 @@ for run in range(n_of_runs):
         cost_prev = cost
         cost = np.linalg.norm(ff_t - ff, 2)
 
-        print('{:5}: cost: {:14.6f}, kx: {:14.6f}, kxnorm: {: 10.9f}'.format(t, cost, kx, kx_norm))
+        print('{:5}: cost: {:14.6f}, kx: {:14.6f}, kxnorm: {: 10.9f}, '.format(t, cost, kx, kx_norm), end='')
 
         if cost < threshold:
             print('Success in {} iterations'.format(t))
@@ -59,10 +57,14 @@ for run in range(n_of_runs):
         if t % 2 == 0:
             # perturb
             kx_prev = kx
-            kx -= pertx * (np.random.random()-0.5) * kx_norm
+            update = pert * (np.random.random()-0.5)
+            kx -= update
+            print('pert: {}'.format(update))
         else:
             # leap
-            kx -= leapx * kx_sign * np.sign(cost_prev - cost) * cost
+            update = leap * kx_sign * np.sign(cost_prev - cost) * cost
+            kx -= update
+            print('leap: {}'.format(update))
 
     else:
         print('cost: {}, kx_t: {}, kx: {}, a: {}, b: {}'.format(cost, kx_t, kx, a, b))
