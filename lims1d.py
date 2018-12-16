@@ -4,15 +4,7 @@
 #    l2norm(ff_target - ff_trial)
 
 import numpy as np
-from common import show_imgs, overlay_imgs
-
-# 1d function
-# tfill = x**2 (mu * fi) / (2 * kxx * deltaP)
-mu = 0.2
-fi = 0.5
-dP = 1E5
-
-d1d = lambda x, kx, a: x**2 * mu * fi / (kx * dP)
+from common import *
 
 #AREA = (0.2, 0.7)
 #NUMBER_OF_NODES = (11, 36)
@@ -23,38 +15,43 @@ trials = []
 for run in range(n_of_runs):
 
     # Create target vectors
+
     kx_t = ((np.random.random()+1.1) * 1E-8)
-    a = np.random.random()
-    ff_t = d1d(y, kx_t, a)
+    ky_t = 0
+    print(kx_t)
+    a = 1
+    ff_t = evaluate_lims(1, x, y, kx_t, ky_t, 1e5, a)
+    print(ff_t)
 
     # create parameters
     n_of_iters = 1000
-    threshold = 1
+    threshold = 0.1
 
     ff = np.empty_like(ff_t)
     b = 1
-    kx = 1
+    kx = 1e-8
+    ky = 1e-8
     kx_prev = 2
     kx_sign = 0
-    gammax = 0.34
+    gammax = 0.1
     cost = 0
     cost_prev = 0
 
     for t in range(n_of_iters):
 
-        ff = d1d(y, kx, b)
+        ff = evaluate_lims(1, x, y, kx, ky, 1e5, a)
         kx_sign = np.sign(kx_prev - kx)
 
         cost_prev = cost
         cost = np.linalg.norm(ff_t - ff, 2)
 
-        print('{:5}: kx: {: 14.4e}, cost: {}'.format(t, kx, cost))
+        print('{:5}: kx: {:14.4E}, cost: {}'.format(t, kx, cost))
 
         if cost < threshold:
             print('Success in {} iterations'.format(t))
             print('cost: {}, kxo: {}, kx: {}, a: {}, b: {}'.format(cost, kx_t, kx, a, b))
             trials.append(t)
-            #show_imgs(ff_t, ff)
+            show_imgs(ff_t, ff)
             break
 
         kx_prev = kx
