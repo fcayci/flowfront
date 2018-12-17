@@ -1,75 +1,3 @@
-class PMap():
-    """Permeability map class"""
-
-    def __init__(self, kxx=0, kyy=None, kxy=None, krt=None):
-        """initialize permeability based on what is passed passed"""
-        if kxx : self.kxx = kxx
-        if kyy : self.kyy = kyy
-        if kxy :
-            self.kxy = kxy
-            self.cpd()
-        if krt : self.krt = krt
-
-
-    def __len__(self):
-        """return the item count as length"""
-        return len(self.__dict__)
-
-
-    def __getitem__(self, key):
-        return self.__getattribute__(key)
-
-
-    def __setitem__(self, key, value):
-        self.__setattr__(key, value)
-
-
-    def cpd(self):
-        """check positive definitive
-        TODO: needs fine exception refinement
-        """
-        try:
-            if self.kxy**2 >= self.kxx * self.kyy:
-                raise ValueError('kxy^2 cannot be bigger than kxx*kyy')
-        except:
-            raise AttributeError('one of the permeability is missing')
-
-    def randomize(self, lower=1e-15, upper=1e-7):
-        """randomize all the parameters based on the passed boundaries
-        TODO: check positive definite when generating random values
-        """
-        from numpy import random
-
-        if lower > upper:
-           raise ValueError('lower should be lower than upper')
-
-        for key in self.__dict__:
-            self[key] = (random.random() + lower) * (upper - lower)
-
-
-
-class Coeffs():
-    """Coefficients class"""
-
-    def __init__(self, mu=0.2, fi=0.5, deltaP=1e5):
-        """initialize coefficients based on what is passed passed"""
-        self.mu = mu
-        self.fi = fi
-        self.deltaP = deltaP
-
-
-    def __len__(self):
-        return len(self.__dict__)
-
-
-    def __getitem__(self, key):
-        return self.__getattribute__(key)
-
-
-    def __setitem__(self, key, value):
-        self.__setattr__(key, value)
-
-
 def calculate_flowtime(bsize, nsize, p, c):
     """calculate and return the flow time based on the given parameters
     bsize = board size (y, x) in meters
@@ -79,36 +7,56 @@ def calculate_flowtime(bsize, nsize, p, c):
     """
     from numpy import mgrid
 
-    ft1d = lambda x, p, c: x**2 * c.mu * c.fi / (p.kxx * c.deltaP)
-    ft2d = lambda x, y, p, c: (x**2 * c.mu * c.fi / (p.kxx * c.deltaP)) - (x*y)**2 * c.mu * c.fi / (p.kyy * c.deltaP)
-    ft3d = lambda x, y, p, c: (x**2 * c.mu * c.fi / (p.kxx * c.deltaP)) - (x*y)**2 * c.mu * c.fi / (p.kyy * c.deltaP)
+    # s[i, j] = xj * 0.5 * (xj + stepx) * c.mu * c.fi  / (p.kxx * c.deltaP)
+    #ft2d = lambda x, y, p, c: (x**2 * c.mu * c.fi / ( 2 * (p.kxx + p.kxy) * c.deltaP)) - (x*y)**2 * c.mu * c.fi / ( (p.kyy + p.kxy) * c.deltaP)
 
     y, x = mgrid[0:bsize[0]:nsize[0]*1j, 0:bsize[1]:nsize[1]*1j]
 
+    #print(x)
+
     if hasattr(p, 'kxx') and hasattr(p, 'kyy') and hasattr(p, 'kxy'):
-        return ft3d(x, y, p, c)
-    elif hasattr(p, 'kxx') and hasattr(p, 'kyy'):
-        return ft2d(x, y, p, c)
+        return _ft2d(x, y, p, c)
     else:
-        return ft1d(x, p, c)
+        print('1d')
+        return _ft1d(x, p, c)
 
 
-def lims_flowtime(bsize, nsize, p, c, fname='run1'):
-    """call lims and return the flow time based on the given parameters
-    bsize = board size (y, x) in meters
-    nsize = node size (y, x) node numbers
-    p = PMap instance
-    c = Coeff instance
-    """
-    from lims import lims_wrapper as lw
-    from numpy import arange, mgrid
+def _ft1d(x, p, c):
+    import numpy as np
 
-    gatenodes = arange(1, nsize[0]*nsize[1], nsize[1])
+    sx = np.array(x)
+    step = x[0,1] - x[0,0]
+    print('step',step)
+    for i, _ in enumerate(x):
+        for j, xj in enumerate(x[i]):
+            sx[i, j] = 0.5 * xj * (xj + step) * c.mu * c.fi / (p.kxx * c.deltaP)
+        # Fix lims' last step
+        sx[i, -1] = 0.5 * x[i, -1] * (x[i, -1]) * c.mu * c.fi / (p.kxx * c.deltaP)
+    return sx
 
-    lb = lw.create_lb(fname, gatenodes, c.deltaP)
-    dmp = lw.create_dmp(fname, bsize, nsize, p, c)
-    lw.run_lims(lb, dmp)
-    return lw.read_res(fname, nsize)
+
+def _ft2d(x, y, p, c):
+    import numpy as np
+
+    sx = np.array(x)
+    stepx = x[0,1] - x[0,0]
+    stepy = y[0,1] - y[0,0]
+
+    for i, xi in enumerate(x):
+        for j, xj in enumerate(x[i]):
+            kx = 0.5 * xj * (xj + stepx) * c.mu * c.fi / ( p.kxx * c.deltaP)
+            ky = p.kyy * stepx * j * 0.01 #0.5 * (y[i, j] + stepy) * c.mu * c.fi / ( p.kyy * c.deltaP)
+            kz = 0.0005 * xj * y[i, j] * (y[i, j] + stepy) * c.mu * c.fi / ( p.kxy * c.deltaP)
+            sx[i, j] = kx + ky - kz
+        # # Fix lims' last step
+        # s[i, -1] = 0.5 * x[i, -1] * (x[i, -1]) * c.mu * c.fi  / (p.kxx * c.deltaP)
+    return sx
+
+
+def plot_item(t):
+    import matplotlib.pyplot as plt
+    plt.plot(t)
+    plt.show()
 
 
 def show_img(t):
