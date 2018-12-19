@@ -13,25 +13,29 @@ def create_lb(fname, gatenodes, deltaP):
     res = fname + '_res.dmp'
 
     f = open(file_loc + lb, 'w')
-    f.write('PROC simu\r\n')
-    f.write('  DO\r\n')
-    f.write('    SOLVE\r\n')
-    f.write('    EXITIF 0\r\n')
-    f.write('  LOOP WHILE ((SONUMBEREMPTY() > 0) AND (SONUMBERFILLED() > 0))\r\n')
-    f.write('ENDPROC\r\n')
-    f.write('\r\n')
-    f.write('CHANGEDIR "' + file_loc + '"\r\n')
-    f.write('READ "' + dmp + '"\r\n')
-    for node in gatenodes:
-        f.write('SETGATE ' + str(node) + ', 1, ' + '{:.6e}'.format(deltaP) + '\r\n')
-    f.write('\r\n')
-    f.write('CALL simu\r\n')
-    f.write('\r\n')
-    f.write('Print "# empty nodes =", sonumberempty\r\n')
-    f.write('\r\n')
-    f.write('SETOUTTYPE "dump"\r\n')
-    f.write('WRITE "' + res + '"\r\n')
-    f.write('EXIT\r\n')
+    f.write('PROC simu\n')
+    f.write('  DO\n')
+    f.write('    SOLVE\n')
+    f.write('    EXITIF 0\n')
+    f.write('  LOOP WHILE ((SONUMBEREMPTY() > 0) AND (SONUMBERFILLED() > 0))\n')
+    f.write('ENDPROC\n')
+    f.write('\n')
+    f.write('CHANGEDIR "' + file_loc + '"\n')
+    f.write('READ "' + dmp + '"\n')
+    try:
+        for node in gatenodes:
+            f.write('SETGATE ' + str(node) + ', 1, ' + '{:.6e}'.format(deltaP) + '\n')
+    except TypeError:
+        f.write('SETGATE ' + str(gatenodes) + ', 1, ' + '{:.6e}'.format(deltaP) + '\n')
+
+    f.write('\n')
+    f.write('CALL simu\n')
+    f.write('\n')
+    f.write('Print "# empty nodes =", sonumberempty\n')
+    f.write('\n')
+    f.write('SETOUTTYPE "dump"\n')
+    f.write('WRITE "' + res + '"\n')
+    f.write('EXIT\n')
     f.close()
 
     print('created file', file_loc + lb)
@@ -62,20 +66,20 @@ def create_dmp(fname, bsize, nsize, p, c):
     y, x = mgrid[0:bsize[0]:nsize[0]*1j, 0:bsize[1]:nsize[1]*1j]
 
     f = open(file_loc+dmp, 'w')
-    f.write('Number of nodes : ' + str(len(y)*len(y[0])) + '\r\n')
-    f.write('{:<12} {:<14} {:<14} {:<6}\r\n'.format(' Index', 'x', 'y', 'z'))
-    f.write('===================================================\r\n')
+    f.write('Number of nodes : ' + str(len(y)*len(y[0])) + '\n')
+    f.write('{:<12} {:<14} {:<14} {:<6}\n'.format(' Index', 'x', 'y', 'z'))
+    f.write('===================================================\n')
 
     for i in range(nsize[0]):
         for j in range(nsize[1]):
-            f.write('{:>6}{:>15.6f}{:>15.6f}{:>15.6}\r\n'.format(i*nsize[1]+j+1, x[i,j], y[i, j], 0.0))
+            f.write('{:>6}{:>15.6f}{:>15.6f}{:>15.6}\n'.format(i*nsize[1]+j+1, x[i,j], y[i, j], 0.0))
 
     elements = (len(y)-1)*(len(y[0])-1)
     if hasattr(p, 'krt'):
         elements += len(y[0]) -1
-    f.write('Number of elements : ' + str(elements) + '\r\n')
-    f.write('  Index  NNOD  N1    N2    N3   (N4)  (N5)  (N6)  (N7)  (N8)    h              Vf             Kxx             Kxy             Kyy           Kzz           Kzx            Kyz\r\n')
-    f.write('==============================================================================================================================================================================\r\n')
+    f.write('Number of elements : ' + str(elements) + '\n')
+    f.write('  Index  NNOD  N1    N2    N3   (N4)  (N5)  (N6)  (N7)  (N8)    h              Vf             Kxx             Kxy             Kyy           Kzz           Kzx            Kyz\n')
+    f.write('==============================================================================================================================================================================\n')
 
     g = arange(1, nsize[0]*nsize[1] + 1)
     g.resize(nsize)
@@ -86,7 +90,7 @@ def create_dmp(fname, bsize, nsize, p, c):
             f.write('{:>6}{:>5}{:>6}{:>6}{:>6}{:>6}'.format(t, 4, g[i, j], g[i, j+1],g[i+1, j+1], g[i+1, j]))
             f.write('                             ')
             f.write('{:>7.3f}{:>16.6f}{:> 16.4e}{:> 16.4e}{:> 16.4e}'.format(height, vf, kxx, kxy, kyy))
-            f.write('\r\n')
+            f.write('\n')
             t += 1
 
     if hasattr(p, 'krt'):
@@ -94,11 +98,11 @@ def create_dmp(fname, bsize, nsize, p, c):
             f.write('{:>6}{:>5}{:>6}{:>6}'.format(t, 2, g[-1, j+1], g[-1, j]))
             f.write('                                         ')
             f.write('{:>7.4f}{:>16.6f}{:> 16.4e}'.format(0.0001, 0.01, p.krt))
-            f.write('\r\n')
+            f.write('\n')
             t += 1
 
-    f.write('Resin Viscosity model ' + model + '\r\n')
-    f.write('Viscosity :            ' + str(viscosity) + '\r\n')
+    f.write('Resin Viscosity model ' + model + '\n')
+    f.write('Viscosity :            ' + str(viscosity) + '\n')
     f.close()
 
     print('created file', file_loc + dmp)
