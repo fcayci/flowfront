@@ -81,7 +81,7 @@ def lims_flowtime(bsize, nsize, p, c, fname='run1', gatenodes=None):
     from numpy import arange, mgrid
 
     # default gatenodes are placed on the west side of the board
-    if not gatenodes:
+    if gatenodes is None:
         gatenodes = arange(1, nsize[0]*nsize[1], nsize[1])
 
     lb = lw.create_lb(fname, gatenodes, c.deltaP)
