@@ -87,7 +87,6 @@ def _ft2dxy(x, y, p, c):
 
 def _ft2drt(x, y, p, c):
     import numpy as np
-
     s = np.array(x)
     stepx = x[0,1] - x[0,0]
     stepy = y[1,0] - y[0,0]
@@ -126,20 +125,30 @@ def plot_item(t):
 
 def show_img(t):
     import matplotlib.pyplot as plt
-    plt.imshow(t, cmap="tab20b", interpolation="bicubic", origin="lower")
+
+    cmap = plt.cm.tab20b
+    cmap.set_under(color='black')
+
+    plt.imshow(t, cmap=cmap, interpolation="bilinear", origin="lower")
     plt.colorbar()
     plt.show()
 
 
-def show_imgs(a, b):
+def show_imgs(a, b, gatenodes=None):
     import matplotlib.pyplot as plt
     from numpy import nanmax
 
+    cmap = plt.cm.tab20b
+    cmap.set_under(color='black')
+
+    if gatenodes is not None:
+        print(gatenodes)
+
     plt.subplot(211)
-    plt.imshow(a[::-1], cmap="tab20b", interpolation="bicubic", origin="lower", vmax=max(nanmax(a), nanmax(b)))
+    plt.imshow(a[::-1], cmap=cmap, interpolation="bilinear", origin="lower", vmin=0.0000001, vmax=max(nanmax(a), nanmax(b)))
     plt.colorbar()
     plt.subplot(212)
-    plt.imshow(b[::-1], cmap="tab20b", interpolation="bicubic", origin="lower", vmax=max(nanmax(a), nanmax(b)))
+    plt.imshow(b[::-1], cmap=cmap, interpolation="bilinear", origin="lower", vmin=0.0000001, vmax=max(nanmax(a), nanmax(b)))
     plt.colorbar()
     plt.show()
 
