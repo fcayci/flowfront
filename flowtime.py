@@ -9,7 +9,7 @@ BOARDSIZE = (0.2, 0.7) # board size in meters (y, x)
 NODESIZE = (11, 36) # number of nodes in each direction (y, x)
 n_of_runs = 1 # repeated runs for trial averaging
 trials = []   # array to hold trial numbers for each run
-backend = 'PITON' # 'PITON'
+backend = 'LIMS' # 'PITON'
 
 #### Create target flowfront
 
@@ -18,19 +18,22 @@ c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 
 # create permeability map instance
 # elements can be accessed by p.kxx
-p_t = PMap(kxx=132.4124e-10, kyy=2.31424e-10, kxy=5.42143e-11)
+p_t = PMap(kxx=132.4124e-10, kyy=5.42143e-11)
 # randomize if needed
 # p_t.randomize()
-
+# create gate locations
+gatelocs = set_gatenodes(NODESIZE, 'sw')
+print(gatelocs)
 # calculate target flow time
 if backend == 'LIMS':
-    ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'run1')
+    ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'run1', gatelocs)
 else:
     ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c)
-#print(ft_t)
+print(ft_t)
+
 
 # create parameters
-n_of_iters = 1000
+n_of_iters = 0
 threshold = 0.01
 p = PMap(kxx=1e-10, kyy=1e-10, kxy=5.42143e-11)
 pp = PMap(kxx=2e-10, kyy=2e-10, kxy=2e-10)

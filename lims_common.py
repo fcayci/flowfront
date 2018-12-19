@@ -70,7 +70,7 @@ class Coeffs():
         self.__setattr__(key, value)
 
 
-def lims_flowtime(bsize, nsize, p, c, fname='run1'):
+def lims_flowtime(bsize, nsize, p, c, fname='run1', gatenodes=None):
     """call lims and return the flow time based on the given parameters
     bsize = board size (y, x) in meters
     nsize = node size (y, x) node numbers
@@ -80,9 +80,40 @@ def lims_flowtime(bsize, nsize, p, c, fname='run1'):
     from lims import lims_wrapper as lw
     from numpy import arange, mgrid
 
-    gatenodes = arange(1, nsize[0]*nsize[1], nsize[1])
+    # default gatenodes are placed on the west side of the board
+    if not gatenodes:
+        gatenodes = arange(1, nsize[0]*nsize[1], nsize[1])
 
     lb = lw.create_lb(fname, gatenodes, c.deltaP)
     dmp = lw.create_dmp(fname, bsize, nsize, p, c)
     lw.run_lims(lb, dmp)
     return lw.read_res(fname, nsize)
+
+
+def set_gatenodes(nsize, gateloc):
+    """decide on gatenodes (inlets) based on gateloc"""
+    from numpy import arange
+
+    g = arange(1, nsize[0]*nsize[1] + 1)
+    g.resize(nsize)
+
+    # west
+    if gateloc == 'w':
+        return g[:, 0]
+    # north
+    elif gateloc == 'n':
+        return g[-1]
+    # south
+    elif gateloc == 's':
+        return g[0]
+    # north west
+    elif gateloc == 'nw':
+        return g[-1, 0]
+    # south west
+    elif gateloc == 'sw':
+        return g[0, 0]
+    # middle of west
+    elif gateloc == 'ww':
+        return g[nsize[0]//2, 0]
+    else:
+        raise ValueError('not a known gate location')
