@@ -1,4 +1,4 @@
-def calculate_flowtime(bsize, nsize, p, c):
+def calculate_flowtime(bsize, nsize, p, c, name=None):
     """calculate and return the flow time based on the given parameters
     bsize = board size (y, x) in meters
     nsize = node size (y, x) node numbers
@@ -16,9 +16,10 @@ def calculate_flowtime(bsize, nsize, p, c):
     if hasattr(p, 'krt'):
         return _ft2drt(x, y, p, c)
     elif hasattr(p, 'kxy'):
+        return _ft2dxy(x, y, p, c)
+    elif hasattr(p, 'kyy'):
         return _ft2d(x, y, p, c)
     else:
-        print('1d')
         return _ft1d(x, p, c)
 
 
@@ -27,9 +28,9 @@ def _ft1d(x, p, c):
 
     s = np.array(x)
     stepx = x[0,1] - x[0,0]
-    for i, _ in enumerate(x):
-        for j, xj in enumerate(x[i]):
-            s[i, j] = 0.5 * xj * (xj + stepx) * c.mu * c.fi / (p.kxx * c.deltaP)
+    for i in range(len(x)):
+        for j in range(1, len(x[i])):
+            s[i, j] = 0.5 * x[i, j] * (x[i, j] + stepx) * c.mu * c.fi / (p.kxx * c.deltaP)
         # Fix for lims' last step
         s[i, -1] = 0.5 * x[i, -1]**2 * c.mu * c.fi / (p.kxx * c.deltaP)
     return s
@@ -42,10 +43,27 @@ def _ft2d(x, y, p, c):
     stepx = x[0,1] - x[0,0]
     stepy = y[1,0] - y[0,0]
     stepd = np.sqrt(stepx**2 + stepy**2)
-    print('steps', stepx, stepy, stepd)
+    #print('steps', stepx, stepy, stepd)
 
     for i in range(len(x)):
-        for j in range(len(x[i])):
+        for j in range(1, len(x[i])):
+            tx = 0.5 * x[i, j] * (x[i, j] + stepx) * c.mu * c.fi / ( p.kxx * c.deltaP)
+            ty = 0.5 * x[i, j] * (x[i, j] + stepy) * c.mu * c.fi / ( p.kyy * c.deltaP)
+            tz = 0.5 * x[i, j] * (x[i, j] + stepx) * c.mu * c.fi / ( p.kxy * c.deltaP)
+            s[i, j] = 1 / (1/tx + 1/tz + 1/ty)
+
+
+def _ft2dxy(x, y, p, c):
+    import numpy as np
+
+    s = np.array(x)
+    stepx = x[0,1] - x[0,0]
+    stepy = y[1,0] - y[0,0]
+    stepd = np.sqrt(stepx**2 + stepy**2)
+    #print('steps', stepx, stepy, stepd)
+
+    for i in range(len(x)):
+        for j in range(1, len(x[i])):
             tx = 0.5 * x[i, j] * (x[i, j] + stepx) * c.mu * c.fi / ( p.kxx * c.deltaP)
             ty = 0.5 * x[i, j] * (x[i, j] + stepy) * c.mu * c.fi / ( p.kyy * c.deltaP)
             tz = 0.5 * x[i, j] * (x[i, j] + stepx) * c.mu * c.fi / ( p.kxy * c.deltaP)
@@ -74,15 +92,15 @@ def _ft2drt(x, y, p, c):
     stepx = x[0,1] - x[0,0]
     stepy = y[1,0] - y[0,0]
     stepd = np.sqrt(stepx**2 + stepy**2)
-    print('steps', stepx, stepy, stepd)
+    #print('steps', stepx, stepy, stepd)
 
     for i in range(len(x)):
-        for j in range(len(x[i])):
+        for j in range(1,len(x[i])):
             tx = 0.5 * x[i, j] * (x[i, j] + stepx) * c.mu * c.fi / ( p.kxx * c.deltaP)
-            #ty = 0.5 * x[i, j] * (x[i, j] + stepy) * c.mu * c.fi / ( p.kyy * c.deltaP)
-            #tz = 0.5 * x[i, j] * (x[i, j] + stepx) * c.mu * c.fi / ( p.kxy * c.deltaP)
-            tr = 100 * x[i, j] * (x[i, j] + stepx) * c.mu * c.fi / ( p.krt * c.deltaP)
-            s[i, j] = 1 / (1/tr + 1/tx)
+            ty = 0.5 * x[i, j] * (x[i, j] + stepy) * c.mu * c.fi / ( p.kyy * c.deltaP)
+            tz = 0.5 * x[i, j] * (x[i, j] + stepx) * c.mu * c.fi / ( p.kxy * c.deltaP)
+            tr = 0.5 * x[i, j] * (x[i, j] + stepx) * c.mu * c.fi / ( p.krt * c.deltaP)
+            s[i, j] = 1 / (1/tr + 1/ty + 1/tz + 1/tx)
         # # Fix lims' last step
         # s[i, -1] = 0.5 * x[i, -1] * (x[i, -1]) * c.mu * c.fi  / (p.kxx * c.deltaP)
 

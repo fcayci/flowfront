@@ -7,7 +7,7 @@ class PMap():
         if kyy : self.kyy = kyy
         if kxy :
             self.kxy = kxy
-            self.cpd()
+            #self.cpd()
         if krt : self.krt = krt
 
 
