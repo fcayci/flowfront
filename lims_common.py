@@ -34,7 +34,8 @@ class PMap():
         except:
             raise AttributeError('one of the permeability is missing')
 
-    def randomize(self, lower=1e-15, upper=1e-7):
+
+    def randomize(self, lower=1e-14, upper=1e-8):
         """randomize all the parameters based on the passed boundaries
         TODO: check positive definite when generating random values
         """
@@ -44,7 +45,7 @@ class PMap():
            raise ValueError('lower should be lower than upper')
 
         for key in self.__dict__:
-            self[key] = (random.random() + lower) * (upper - lower)
+            self[key] = random.uniform(lower, upper)
 
 
 

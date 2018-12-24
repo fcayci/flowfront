@@ -23,23 +23,18 @@ else:
     ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 
 # create parameters
-n_of_iters = 40
+n_of_iters = 400
 threshold = 0.1
-normalize = 1e+15
 p = PMap(kxx=1e-10)
-pp = PMap(kxx=1e-10)
+kx = p.kxx * c.deltaP
 
-pert = 0.008
-leap = 0.8
+pert = 0.01
+leap = 30
 
 cost = 0
-cost_prev = 0
-cost_max = 0
-#cost_min =
-cost_norm = 0
-
-# starting point for minimum cost
-cost_min = 1e-6
+pcost = 0
+ncost = 0
+mcost = 0
 
 for t in range(n_of_iters):
 
@@ -50,16 +45,14 @@ for t in range(n_of_iters):
 
     pcost = cost
     cost = np.linalg.norm(ft_t - ft, 2)
-    cost_max = max(cost_max, cost)
-    cost_min = min(cost_min, cost)
-    # if cost_norm < cost_max / 2:
-    #     cost_max = cost_max/2
-    cost_norm = abs(cost) / cost_max
+    mcost = max(mcost, cost)
+    ncost = cost / mcost
+    scost = np.sign(pcost - cost)
 
     print('{:5} '.format(t),end='')
-    print('x: {:14.4e} '.format(p.kxx),end='')
+    print('kxx: {:14.4e} '.format(p.kxx),end='')
     print('c: {:14.4e} '.format(cost),end='')
-    print('cn: {:7.6e} '.format(cost_norm),end='')
+    print('nc: {:7.6e} '.format(ncost),end='')
 
     if cost < threshold:
         print()
@@ -70,20 +63,14 @@ for t in range(n_of_iters):
         break
 
     if t % 2 == 0:
-        # perturb
         update = pert * np.random.random() * p.kxx
-        p.kxx -= update
         print('p: {} '.format(update), end='')
     else:
-        # leap
-        if np.sign(pcost - cost) is not 0:
-            update = leap * np.sign(pcost - cost) * cost_norm * p.kxx
-        else:
-            update = leap * cost_norm * p.kxx
-        # update = leap * np.sign(pp.kxx - p.kxx) * np.sign(cost_prev - cost) * p.kxx * cost_norm
-        p.kxx -= update
+        update = leap * ncost * p.kxx
         print('l: {} '.format(update), end='')
-    
+
+    kx -= update
+    p.kxx = kx / c.deltaP
     print()
 
 
