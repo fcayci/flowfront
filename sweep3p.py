@@ -5,6 +5,7 @@ import numpy as np
 from common import *
 from lims_common import *
 import matplotlib.pyplot as plt
+import time
 
 BOARDSIZE = (0.2, 0.7) # board size in meters (y, x)
 NODESIZE  = (11, 36)   # number of nodes in each direction (y, x)
@@ -14,9 +15,9 @@ backend = 'LIMS'       # choose backend : LIMS or XXX
 threshold = 0.1        # l2 norm threshold
 n_of_iters = 40000     # max number of iterations before giving up
 
-kx = np.logspace(-14, -8, 10)
-ky = np.logspace(-14, -8, 10)
-kz = np.logspace(-14, -8, 5)
+kx = np.logspace(-14, -8, 40)
+ky = np.logspace(-14, -8, 40)
+kz = np.logspace(-14, -8, 10)
 
 c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 # set up the gates
@@ -26,13 +27,14 @@ c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 gatenodes = set_gatenodes(NODESIZE, 'w')
 
 ### Create target flowfront
-p_t = PMap(kxx=1.4213141e-10, kyy=8.4124e-10, kxy=3.4124e-12)
+p_t = PMap(kxx=1.4213141e-11, kyy=8.4124e-11, kxy=3.4124e-12)
 
 if backend == 'LIMS':
     ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 else:
     ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 
+start = time.time()
 for rx in range(len(kx)):
     for ry in range(len(ky)):
         for rz in range(len(kz)):
@@ -52,6 +54,7 @@ for rx in range(len(kx)):
                 costs.append(cost)
 
 #print(costs)
-
+print('took {} seconds'.format(time.time() - start))
+print('got {} samples'.format(len(costs)))
 plt.loglog(costs)
 plt.show()
