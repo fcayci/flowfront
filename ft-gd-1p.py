@@ -6,18 +6,24 @@ from common import *
 from lims_common import *
 import logging
 
-logging.basicConfig(level=logging.WARNING)
+# set print logging level: INFO, WARNING, ERROR
+logging.basicConfig(format='%(message)s', level=logging.WARNING)
 
 BOARDSIZE = (0.2, 0.4) # board size in meters (y, x)
 NODESIZE = (11, 21)    # number of nodes in each direction (y, x)
 trials = []            # array to hold trial numbers for each run
 costs = []             # array to hold the costs for each run
-backend = 'G'          # choose backend : LIMS or XXX
+backend = ''          # choose backend : LIMS or XXX
+threshold = 0.1        # l2 norm threshold
+n_of_iters = 40000     # max number of iterations before giving up
 
+# create a target kxx vector to test between given log space
+# e.g: 100 kxx values between 1e-11 and 1e-8
+# np.logspace(-11, -8, 100)
 k = np.logspace(-14, -8, 100)
 
-logging.warning('kxx values that are being tested:\n{}'.format(k))
-logging.info('testing for {} values'.format(len(k)))
+logging.info('kxx values that are being tested:\n{}'.format(k))
+logging.warning('testing for {} values'.format(len(k)))
 
 for r in range(len(k)):
 
@@ -38,13 +44,12 @@ for r in range(len(k)):
     else:
         ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 
-    # create trial parameters
-    n_of_iters = 40000
-    threshold = 0.1
-    p = PMap(kxx=1e-12)
-    pp = PMap(kxx=2e-12)
+    # initial educated guess.
+    # Making this a big number helps with the iteration counts
+    p = PMap(kxx=5e-8)
+    pp = PMap(kxx=6e-8)
 
-    gammax = 0.8 #* BOARDSIZE[1] / (NODESIZE[1]-1)
+    gammax = 0.8
 
     cost = 0
     pcost = 0
@@ -54,6 +59,7 @@ for r in range(len(k)):
 
     for t in range(n_of_iters):
 
+        l = '' # this is the logger string
         if backend == 'LIMS':
             ft = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
         else:
@@ -65,15 +71,17 @@ for r in range(len(k)):
         mcost = max(mcost, cost)
         ncost = abs(cost) / mcost
 
-        print('{:5} '.format(t),end='')
-        print('x: {:14.4e} '.format(p.kxx),end='')
-        print('c: {:14.4e} '.format(cost),end='')
-        print('nc: {:7.6e} '.format(ncost),end='')
+        l += '{:5} '.format(t)
+        l += 'x: {:14.4e} '.format(p.kxx)
+        l += 'c: {:14.4e} '.format(cost)
+        l += 'nc: {:7.6e} '.format(ncost)
 
         if cost < threshold:
-            print()
-            print('Success in {} iterations'.format(t))
-            print('kxx original', p_t.kxx)
+            logging.info(l)
+            l  = 'SUCCESS in {} iterations '.format(t)
+            l += 'kxx target was {}'.format(p_t.kxx)
+            logging.warning(l)
+
             trials.append(t)
             #plot_item(costs[1:])
             #print('lims', ft_t)
@@ -84,16 +92,18 @@ for r in range(len(k)):
         update = np.sign(pp.kxx - p.kxx) * np.sign(pcost - cost) * p.kxx * gammax * ncost
         pp.kxx = p.kxx
         p.kxx -= update
-        print('u: {: 4.5e} '.format(update), end='')
-        print()
+        l += 'u: {: 4.5e}'.format(update)
+        logging.info(l)
 
     else:
         #print('lims', ft_t)
         #print('model', ft)
-        print(r)
-        print('kxx original', p_t.kxx)
-        print('Fail')
+        logging.info(l)
+        l  = 'FAIL in {}th trial. '.format(r)
+        l += 'kxx target was {}. '.format(p_t.kxx)
+        l += 'we ended at {}'.format(p.kxx)
+        logging.error(l)
         break
 
 else:
-    print('Success averate {} trials'.format(np.mean(trial)))
+    logging.error('Success average is {} iterations over {} trials'.format(np.mean(trials), len(k)))

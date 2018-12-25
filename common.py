@@ -29,8 +29,6 @@ def _ft1d(bsize, nsize, p, c, gatelocs=None):
         if i*nsize[1]+1 in gatelocs:
             for j in range(1, nsize[1]):
                 g[i, j] = 0.5 * (j*stepx) * (j*stepx + stepx) * h
-            # Fix for displaying image
-            g[i,  0] = 0.0001
             # Fix for lims' last step
             g[i, -1] = 0.5 * stepx**2 * (nsize[1]-1)**2 * h
 
@@ -50,7 +48,7 @@ def _ft2d(bsize, nsize, p, c, gatelocs=None):
 
     hx = c.mu * c.fi / (p.kxx * c.deltaP)
     hy = c.mu * c.fi / (p.kyy * c.deltaP)
-    
+
     for i in range(nsize[0]):
         if i*nsize[1]+1 in gatelocs:
             for j in range(1, nsize[1]):
@@ -60,7 +58,7 @@ def _ft2d(bsize, nsize, p, c, gatelocs=None):
     for j in range(nsize[1]):
         for i in range(1, nsize[0]):
             g[i, j] = g[i-1, j] + 0.5 * (stepy) * (2 * stepy) * hy
-                
+
     return g
 
 
@@ -90,6 +88,7 @@ def show_imgs(a, b, gatenodes=None):
 
     if gatenodes is not None:
         print(gatenodes)
+        #a[::-1,1:]
 
     plt.subplot(211)
     plt.imshow(a[::-1], cmap=cmap, interpolation="bilinear", origin="lower", vmin=0.0000001, vmax=max(nanmax(a), nanmax(b)))
