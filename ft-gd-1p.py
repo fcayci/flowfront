@@ -1,5 +1,10 @@
 # author: Furkan Cayci
 # description: gradient descent implementation over 1 parameter
+#   takes on averate 14.85 iterations over 100 trials with 0.1 threshold
+#   11x21 nodes with 0.2x0.4 meter board
+#   on lims  -14 takes a long time to fill, threshold should be
+#     somewhat relevant. if values are between -12 and -8, it should
+#     work fine.
 
 import numpy as np
 from common import *
@@ -13,14 +18,13 @@ BOARDSIZE = (0.2, 0.4) # board size in meters (y, x)
 NODESIZE = (11, 21)    # number of nodes in each direction (y, x)
 trials = []            # array to hold trial numbers for each run
 costs = []             # array to hold the costs for each run
-backend = ''          # choose backend : LIMS or XXX
-threshold = 0.1        # l2 norm threshold
+backend = 'LIMS'       # choose backend : LIMS or XXX
+threshold = 1          # l2 norm threshold
 n_of_iters = 40000     # max number of iterations before giving up
 
 # create a target kxx vector to test between given log space
-# e.g: 100 kxx values between 1e-11 and 1e-8
-# np.logspace(-11, -8, 100)
-k = np.logspace(-14, -8, 100)
+# e.g: 100 kxx values between 1e-12 and 1e-8
+k = np.logspace(-12, -8, 100)
 
 logging.info('kxx values that are being tested:\n{}'.format(k))
 logging.warning('testing for {} values'.format(len(k)))
@@ -90,6 +94,9 @@ for r in range(len(k)):
             break
 
         update = np.sign(pp.kxx - p.kxx) * np.sign(pcost - cost) * p.kxx * gammax * ncost
+        if update == 0:
+            logging.error('FAIL: update value reached to 0')
+            exit()
         pp.kxx = p.kxx
         p.kxx -= update
         l += 'u: {: 4.5e}'.format(update)
