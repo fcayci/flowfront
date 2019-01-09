@@ -62,9 +62,12 @@ def _ft2d(bsize, nsize, p, c, gatelocs=None):
     return g
 
 
-def plot_item(t):
+def plot_item(c, t=''):
     import matplotlib.pyplot as plt
-    plt.plot(t)
+    plt.plot(c)
+    plt.title(t)
+    plt.xlabel('# of trials')
+    plt.ylabel('cost')
     plt.show()
 
 
