@@ -10,9 +10,10 @@ import numpy as np
 from common import *
 from lims_common import *
 import logging
+import matplotlib.pyplot as plt
 
 # set print logging level: INFO, WARNING, ERROR
-logging.basicConfig(format='%(message)s', level=logging.WARNING)
+logging.basicConfig(format='%(message)s', level=logging.INFO)
 
 BOARDSIZE = (0.2, 0.4) # board size in meters (y, x)
 NODESIZE = (11, 21)    # number of nodes in each direction (y, x)
@@ -87,10 +88,12 @@ for r in range(len(k)):
             logging.warning(l)
 
             trials.append(t)
-            #plot_item(costs[1:])
+            t = 'cost function for target kxx: {:14.4e}'.format(p_t.kxx)
+            plot_item(costs[1:], t)
             #print('lims', ft_t)
             #print('model', ft)
-            #show_imgs(ft_t, ft)
+            t = 'Flowfront when kxx: {:14.4e}'.format(p_t.kxx)
+            show_imgs(ft_t, ft, t)
             break
 
         update = np.sign(pp.kxx - p.kxx) * np.sign(pcost - cost) * p.kxx * gammax * ncost
