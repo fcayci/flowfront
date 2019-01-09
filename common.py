@@ -79,7 +79,7 @@ def show_img(t):
     plt.show()
 
 
-def show_imgs(a, b, gatenodes=None):
+def show_imgs(a, b, t='', gatenodes=None):
     import matplotlib.pyplot as plt
     from numpy import nanmax
 
@@ -90,10 +90,13 @@ def show_imgs(a, b, gatenodes=None):
         print(gatenodes)
         #a[::-1,1:]
 
-    plt.subplot(211)
+    fig = plt.figure()
+    fig.suptitle(t)
+    ax = plt.subplot(211)
+    ax.set_title('target flow front')
     plt.imshow(a[::-1], cmap=cmap, interpolation="bilinear", origin="lower", vmin=0.0000001, vmax=max(nanmax(a), nanmax(b)))
     plt.colorbar()
-    plt.subplot(212)
+    ax = plt.subplot(212)
     plt.imshow(b[::-1], cmap=cmap, interpolation="bilinear", origin="lower", vmin=0.0000001, vmax=max(nanmax(a), nanmax(b)))
     plt.colorbar()
     plt.show()
