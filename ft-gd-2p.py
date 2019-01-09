@@ -48,6 +48,9 @@ for rx in range(len(kx)):
         else:
             ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 
+        if np.count_nonzero(ft_t) < (NODESIZE[1]-1) * NODESIZE[0]:
+            logging.warning('skipping')
+            break
         # initial educated guess.
         # Making this a big number helps with the iteration counts
         p = PMap(kxx=5e-8, krt=1e-8)
@@ -62,10 +65,15 @@ for rx in range(len(kx)):
         costs = []
         mux = 0
 
+        l = 'Run {:5} {}\n'.format(rx*len(kx)+rr, '#'*70)
+        l += 'Testing for kxx: {:14.4e}, krt: {:14.4e}\n'.format(p_t.kxx, p_t.krt)
+        l += '{}\n'.format('#'*80)
+        logging.warning(l)
+
         for t in range(n_of_iters):
 
-            # if t % 60 == 0:
-            #     mux = 1 - mux
+            if t % 30 == 0:
+                mux = 1 - mux
 
             l = '' # this is the logger string
             if backend == 'LIMS':
@@ -98,9 +106,6 @@ for rx in range(len(kx)):
                 #print('model', ft)
                 show_imgs(ft_t, ft)
                 break
-
-            if (pcost - cost < 1):
-                mux = 1 - mux
 
             if mux == 0:
                 # update kxx
