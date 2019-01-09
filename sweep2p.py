@@ -15,8 +15,8 @@ backend = 'LIMS'       # choose backend : LIMS or XXX
 threshold = 0.1        # l2 norm threshold
 n_of_iters = 40000     # max number of iterations before giving up
 
-kx = np.logspace(-14, -8, 40)
-kr = np.logspace(-14, -8, 40)
+kx = np.logspace(-15, -13, 10)
+kr = np.logspace(-14, -8, 100)
 
 c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 # set up the gates
@@ -26,7 +26,7 @@ c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 gatenodes = set_gatenodes(NODESIZE, 'w')
 
 ### Create target flowfront
-p_t = PMap(kxx=1.4213141e-11, krt=8.4124e-11)
+p_t = PMap(kxx=1e-14, krt=1e-12)
 
 if backend == 'LIMS':
     ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
@@ -52,5 +52,8 @@ for rx in range(len(kx)):
 
 #print(costs)
 print('took {} seconds'.format(time.time() - start))
-plt.loglog(costs)
+plt.plot(costs)
+plt.title('2 parameter sweep on kxx and krt')
+plt.xlabel('# of trials')
+plt.ylabel('cost')
 plt.show()

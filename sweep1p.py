@@ -26,7 +26,7 @@ c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 gatenodes = set_gatenodes(NODESIZE, 'w')
 
 ### Create target flowfront
-p_t = PMap(kxx=1.4213141e-10)
+p_t = PMap(kxx=1.4213141e-13)
 
 if backend == 'LIMS':
     ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
@@ -51,5 +51,8 @@ for r in range(len(k)):
 
 print(costs)
 
-plt.loglog(costs)
+plt.semilogy(costs)
+plt.title('1 parameter sweep on kxx')
+plt.xlabel('# of trials')
+plt.ylabel('cost')
 plt.show()

@@ -15,9 +15,9 @@ backend = 'LIMS'       # choose backend : LIMS or XXX
 threshold = 0.1        # l2 norm threshold
 n_of_iters = 40000     # max number of iterations before giving up
 
-kx = np.logspace(-14, -8, 40)
-ky = np.logspace(-14, -8, 40)
-kz = np.logspace(-14, -8, 10)
+kx = np.logspace(-14, -8, 50)
+ky = np.logspace(-14, -8, 50)
+kz = np.logspace(-14, -9, 20)
 
 c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 # set up the gates
@@ -56,5 +56,5 @@ for rx in range(len(kx)):
 #print(costs)
 print('took {} seconds'.format(time.time() - start))
 print('got {} samples'.format(len(costs)))
-plt.loglog(costs)
+plt.semilogy(costs)
 plt.show()
