@@ -1,4 +1,5 @@
 # wrapper for running lims
+import logging
 
 file_loc = 'runs/'
 
@@ -38,7 +39,8 @@ def create_lb(fname, gatenodes, deltaP):
     f.write('EXIT\n')
     f.close()
 
-    print('created file', file_loc + lb)
+    l = 'created file: {}'.format(file_loc + lb)
+    logging.info(l)
     return file_loc + lb
 
 
@@ -105,12 +107,13 @@ def create_dmp(fname, bsize, nsize, p, c):
     f.write('Viscosity :            ' + str(viscosity) + '\n')
     f.close()
 
-    print('created file', file_loc + dmp)
+    l = 'created file: {}'.format(file_loc + dmp)
+    logging.info(l)
     return file_loc + dmp
 
 
 def run_lims(lb, dmp):
-    from subprocess import call
+    from subprocess import call, check_output
     import platform
 
     limscmd = ['lims/lims', '-l'+lb]
@@ -118,8 +121,10 @@ def run_lims(lb, dmp):
     if platform.system() == 'Darwin' or platform.system() == 'Linux':
         limscmd.insert(0, 'wine')
 
-    call(limscmd)
-
+    a = check_output(limscmd)
+    a = str(a).split('\\r\\n')
+    l = a[-2].split(' # ')[-1]
+    logging.warning(l)
 
 def read_res(fname, nsize):
     """Reads the result dmp file and returns the fill time array
@@ -137,7 +142,8 @@ def read_res(fname, nsize):
                 try:
                     ff.append(float64(line.strip().split(' ')[-1]))
                 except:
-                    print('skipping', line)
+                    l = 'skipping: {}'.format(line)
+                    logging.info(l)
 
             if "Fill Time" in line:
                 save = True
