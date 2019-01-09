@@ -40,7 +40,7 @@ def create_lb(fname, gatenodes, deltaP):
     f.close()
 
     l = 'created file: {}'.format(file_loc + lb)
-    logging.info(l)
+    logging.debug(l)
     return file_loc + lb
 
 
@@ -108,7 +108,7 @@ def create_dmp(fname, bsize, nsize, p, c):
     f.close()
 
     l = 'created file: {}'.format(file_loc + dmp)
-    logging.info(l)
+    logging.debug(l)
     return file_loc + dmp
 
 
@@ -124,7 +124,7 @@ def run_lims(lb, dmp):
     a = check_output(limscmd)
     a = str(a).split('\\r\\n')
     l = a[-2].split(' # ')[-1]
-    logging.warning(l)
+    logging.info(l)
 
 def read_res(fname, nsize):
     """Reads the result dmp file and returns the fill time array
@@ -143,7 +143,7 @@ def read_res(fname, nsize):
                     ff.append(float64(line.strip().split(' ')[-1]))
                 except:
                     l = 'skipping: {}'.format(line)
-                    logging.info(l)
+                    logging.debug(l)
 
             if "Fill Time" in line:
                 save = True
