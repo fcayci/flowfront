@@ -16,7 +16,7 @@ c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 # create permeability map instance
 # elements can be accessed by p.kxx
 #p = PMap(kxx=1e-10, kyy=1e-10, kxy=1e-12, krt=1e-9)
-p = PMap(kxx=1e-10,  krt=1e-9)
+p = PMap(kxx=1e-10,  krt=1e-9, kyy=5e-11, kxy=5e-12)
 # randomize if needed
 #p.randomize(lower=1e-14, upper=1e-8)
 
