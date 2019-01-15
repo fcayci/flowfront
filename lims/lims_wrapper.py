@@ -32,8 +32,8 @@ def create_lb(fname, gatenodes, deltaP):
     f.write('\n')
     f.write('CALL simu\n')
     f.write('\n')
-    f.write('Print "# empty nodes =", sonumberempty\n')
-    f.write('\n')
+    #f.write('Print "# empty nodes =", sonumberempty\n')
+    #f.write('\n')
     f.write('SETOUTTYPE "dump"\n')
     f.write('WRITE "' + res + '"\n')
     f.write('EXIT\n')
@@ -113,7 +113,7 @@ def create_dmp(fname, bsize, nsize, p, c):
 
 
 def run_lims(lb, dmp):
-    from subprocess import call, check_output
+    from subprocess import run
     import platform
 
     limscmd = ['lims/lims', '-l'+lb]
@@ -121,10 +121,9 @@ def run_lims(lb, dmp):
     if platform.system() == 'Darwin' or platform.system() == 'Linux':
         limscmd.insert(0, 'wine')
 
-    a = check_output(limscmd)
-    a = str(a).split('\\r\\n')
-    l = a[-2].split(' # ')[-1]
-    logging.info(l)
+    a = run(limscmd, capture_output=True)
+    logging.debug(a)
+
 
 def read_res(fname, nsize):
     """Reads the result dmp file and returns the fill time array
