@@ -9,11 +9,8 @@ import time
 
 BOARDSIZE = (0.2, 0.7) # board size in meters (y, x)
 NODESIZE  = (11, 36)   # number of nodes in each direction (y, x)
-trials = []            # array to hold trial numbers for each run
 costs = []             # array to hold the costs for each run
 backend = 'LIMS'       # choose backend : LIMS or XXX
-threshold = 0.1        # l2 norm threshold
-n_of_iters = 40000     # max number of iterations before giving up
 
 kx = np.logspace(-14, -8, 50)
 ky = np.logspace(-14, -8, 50)
