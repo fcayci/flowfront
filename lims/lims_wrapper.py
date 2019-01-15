@@ -109,10 +109,10 @@ def create_dmp(fname, bsize, nsize, p, c):
 
     l = 'created file: {}'.format(file_loc + dmp)
     logging.debug(l)
-    return file_loc + dmp
+    #return file_loc + dmp
 
 
-def run_lims(lb, dmp):
+def run_lims(lb):
     from subprocess import run
     import platform
 
