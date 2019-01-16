@@ -120,9 +120,10 @@ def run_lims(lb):
 
     if platform.system() == 'Darwin' or platform.system() == 'Linux':
         limscmd.insert(0, 'wine')
-
-    a = run(limscmd, capture_output=True)
-    logging.debug(a)
+        run(limscmd, capture_output=False)
+    else:
+        a = run(limscmd, capture_output=True)
+        logging.debug(a)
 
 
 def read_res(fname, nsize):
