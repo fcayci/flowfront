@@ -14,7 +14,6 @@ import numpy as np
 from common import *
 from lims_common import *
 import logging
-#import matplotlib.pyplot as plt
 
 # set print logging level: INFO, WARNING, ERROR
 logging.basicConfig(format='%(message)s', level=logging.INFO)
@@ -23,7 +22,7 @@ BOARDSIZE = (0.2, 0.4) # board size in meters (y, x)
 NODESIZE = (11, 21)    # number of nodes in each direction (y, x)
 trials = []            # array to hold trial numbers for each run
 costs = []             # array to hold the costs for each run
-backend = 'a'       # choose backend : LIMS or XXX
+backend = 'LIMS'       # choose backend : LIMS or XXX
 threshold = 1          # l2 norm threshold
 n_of_iters = 40000     # max number of iterations before giving up
 
