@@ -1,16 +1,20 @@
 # author: Furkan Cayci
-# description: gradient descent implementation over 1 parameter
-#   takes on averate 14.85 iterations over 100 trials with 0.1 threshold
-#   11x21 nodes with 0.2x0.4 meter board
+# description:
+#   gradient descent implementation over 1 parameter
 #   on lims  -14 takes a long time to fill, threshold should be
-#     somewhat relevant. if values are between -12 and -8, it should
-#     work fine.
+#   somewhat relevant. if values are between -12 and -8, it should
+#   work fine.
+#
+# result:
+#   Success average is 10.52 iterations over 100 trials for python impl.
+#   Success average is 10.4  iterations over 100 trials for lims
+#     with gammax=.8, nodesize=(11,21), boardsize=(.2,.4), threshold=1
 
 import numpy as np
 from common import *
 from lims_common import *
 import logging
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 # set print logging level: INFO, WARNING, ERROR
 logging.basicConfig(format='%(message)s', level=logging.INFO)
@@ -19,7 +23,7 @@ BOARDSIZE = (0.2, 0.4) # board size in meters (y, x)
 NODESIZE = (11, 21)    # number of nodes in each direction (y, x)
 trials = []            # array to hold trial numbers for each run
 costs = []             # array to hold the costs for each run
-backend = 'LIMS'       # choose backend : LIMS or XXX
+backend = 'a'       # choose backend : LIMS or XXX
 threshold = 1          # l2 norm threshold
 n_of_iters = 40000     # max number of iterations before giving up
 
@@ -51,8 +55,8 @@ for r in range(len(k)):
 
 	# initial educated guess.
 	# Making this a big number helps with the iteration counts
-	p = PMap(kxx=5e-8)
-	pp = PMap(kxx=6e-8)
+	p = PMap(kxx=5e-8)  # current guess
+	pp = PMap(kxx=6e-8) # previous guess
 
 	gammax = 0.8
 
@@ -77,9 +81,9 @@ for r in range(len(k)):
 		ncost = abs(cost) / mcost
 
 		l += '{:5} '.format(t)
-		l += 'x: {:14.4e} '.format(p.kxx)
-		l += 'c: {:14.4e} '.format(cost)
-		l += 'nc: {:7.6e} '.format(ncost)
+		l += 'x: {:10.4e} '.format(p.kxx)
+		l += 'cost: {:10.4e} '.format(cost)
+		l += 'normcost: {:7.6e} '.format(ncost)
 
 		if cost < threshold:
 			logging.info(l)
@@ -89,11 +93,11 @@ for r in range(len(k)):
 
 			trials.append(t)
 			t = 'cost function for target kxx: {:14.4e}'.format(p_t.kxx)
-			plot_item(costs[1:], t)
+			#plot_item(costs[1:], t)
 			#print('lims', ft_t)
 			#print('model', ft)
 			t = 'Flowfront when kxx: {:14.4e}'.format(p_t.kxx)
-			show_imgs(ft_t, ft, t)
+			#show_imgs(ft_t, ft, t)
 			break
 
 		update = np.sign(pp.kxx - p.kxx) * np.sign(pcost - cost) * p.kxx * gammax * ncost
@@ -102,7 +106,7 @@ for r in range(len(k)):
 			exit()
 		pp.kxx = p.kxx
 		p.kxx -= update
-		l += 'u: {: 4.5e}'.format(update)
+		l += 'update: {: 10.5e}'.format(update)
 		logging.info(l)
 
 	else:
