@@ -1,5 +1,6 @@
 # author: Furkan Cayci
-# description:
+# description: shows the flowfront
+#   based on the given parameters
 
 import numpy as np
 from common import *

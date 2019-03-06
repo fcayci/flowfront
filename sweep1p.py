@@ -26,25 +26,25 @@ gatenodes = set_gatenodes(NODESIZE, 'w')
 p_t = PMap(kxx=1.4213141e-13)
 
 if backend == 'LIMS':
-    ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
+	ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 else:
-    ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
+	ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 
 for r in range(len(k)):
 
-    ### Create target flowfront
-    p = PMap(kxx=k[r])
-    # randomize kxx over the given bounds
-    #p_t.randomize(lower=1e-14, upper=1e-8)
+	### Create target flowfront
+	p = PMap(kxx=k[r])
+	# randomize kxx over the given bounds
+	#p_t.randomize(lower=1e-14, upper=1e-8)
 
-    # calculate target flow time
-    if backend == 'LIMS':
-        ft = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
-    else:
-        ft = calculate_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
+	# calculate target flow time
+	if backend == 'LIMS':
+		ft = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
+	else:
+		ft = calculate_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
 
-    cost = np.linalg.norm(ft_t - ft, 2)
-    costs.append(cost)
+	cost = np.linalg.norm(ft_t - ft, 2)
+	costs.append(cost)
 
 print(costs)
 
