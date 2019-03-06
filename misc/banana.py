@@ -1,3 +1,5 @@
+# banana function display
+
 from pylab import mgrid, contourf, cm, show
 
 f = lambda x,y: (1 - x)**2 + 100*(y - x**2)**2
