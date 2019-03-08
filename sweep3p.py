@@ -37,6 +37,11 @@ if backend == 'LIMS':
 else:
 	ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 
+f = open('sweep3d.txt', 'w')
+l = '{:7}, {:10.4e}, {:10.4e}, {:10.4e}\n'.format('target', p_t.kxx, p_t.kyy, p_t.kxy)
+f.write(l)
+i = 1
+
 start = time.time()
 for rx in range(len(kx)):
 	for ry in range(len(ky)):
@@ -56,8 +61,14 @@ for rx in range(len(kx)):
 			else:
 				cost = np.linalg.norm(ft_t - ft, 2)
 				costs.append(cost)
+				l = '{:7}, {:10.4e}, {:10.4e}, {:10.4e}, {:.1}\n'.format(i, kx[rx], ky[ry], kz[rz], cost)
+				f.write(l)
+				i=i+1
 
 print('took {} seconds'.format(time.time() - start))
+
+f.close()
+
 print('got {} samples'.format(len(costs)))
 plt.semilogy(costs)
 plt.title('3 parameter sweep on kxx, kyy and kxy for target\n kxx_t={:4.3e}, kyy_t={:4.3e} and kxy_t={:4.3e}'.format(p_t.kxx, p_t.kyy, p_t.kxy))
