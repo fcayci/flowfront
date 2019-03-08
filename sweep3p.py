@@ -61,7 +61,7 @@ for rx in range(len(kx)):
 			else:
 				cost = np.linalg.norm(ft_t - ft, 2)
 				costs.append(cost)
-				l = '{:7}, {:10.4e}, {:10.4e}, {:10.4e}, {:.1}\n'.format(i, kx[rx], ky[ry], kz[rz], cost)
+				l = '{:7}, {:10.4e}, {:10.4e}, {:10.4e}, {:.4f}\n'.format(i, kx[rx], ky[ry], kz[rz], cost)
 				f.write(l)
 				i=i+1
 
