@@ -33,9 +33,9 @@ gatenodes = set_gatenodes(NODESIZE, 'w')
 p_t = PMap(kxx=1.4213141e-11, kyy=8.4124e-11, kxy=3.4124e-12)
 
 if backend == 'LIMS':
-	ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
+    ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 else:
-	ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
+    ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 
 f = open('sweep3d.txt', 'w')
 l = '{:7}, {:10.4e}, {:10.4e}, {:10.4e}\n'.format('target', p_t.kxx, p_t.kyy, p_t.kxy)
@@ -44,26 +44,26 @@ i = 1
 
 start = time.time()
 for rx in range(len(kx)):
-	for ry in range(len(ky)):
-		for rz in range(len(kz)):
-			### Create target flowfront
-			p = PMap(kxx=kx[rx], kyy=ky[ry], kxy=kz[rz])
+    for ry in range(len(ky)):
+        for rz in range(len(kz)):
+            ### Create target flowfront
+            p = PMap(kxx=kx[rx], kyy=ky[ry], kxy=kz[rz])
 
-			# calculate target flow time
-			if backend == 'LIMS':
-				ft = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
-			else:
-				ft = calculate_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
+            # calculate target flow time
+            if backend == 'LIMS':
+                ft = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
+            else:
+                ft = calculate_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
 
-			if np.count_nonzero(ft) < (NODESIZE[1]-1) * NODESIZE[0]:
-				#print('skipping')
-				pass
-			else:
-				cost = np.linalg.norm(ft_t - ft, 2)
-				costs.append(cost)
-				l = '{:7}, {:10.4e}, {:10.4e}, {:10.4e}, {:.4f}\n'.format(i, kx[rx], ky[ry], kz[rz], cost)
-				f.write(l)
-				i=i+1
+            if np.count_nonzero(ft) < (NODESIZE[1]-1) * NODESIZE[0]:
+                #print('skipping')
+                pass
+            else:
+                cost = np.linalg.norm(ft_t - ft, 2)
+                costs.append(cost)
+                l = '{:7}, {:10.4e}, {:10.4e}, {:10.4e}, {:.4f}\n'.format(i, kx[rx], ky[ry], kz[rz], cost)
+                f.write(l)
+                i=i+1
 
 print('took {} seconds'.format(time.time() - start))
 

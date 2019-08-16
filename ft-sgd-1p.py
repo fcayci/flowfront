@@ -32,89 +32,89 @@ logging.warning('testing for {} values'.format(len(k)))
 
 for r in range(len(k)):
 
-	### Create target flowfront
-	c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
-	p_t = PMap(kxx=k[r])
+    ### Create target flowfront
+    c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
+    p_t = PMap(kxx=k[r])
 
-	# randomize kxx over the given bounds
-	#p_t.randomize(lower=1e-14, upper=1e-8)
-	# set up the gates
-	# w  : west
-	# nw : north west
-	# sw : south west
-	gatenodes = set_gatenodes(NODESIZE, 'w')
+    # randomize kxx over the given bounds
+    #p_t.randomize(lower=1e-14, upper=1e-8)
+    # set up the gates
+    # w  : west
+    # nw : north west
+    # sw : south west
+    gatenodes = set_gatenodes(NODESIZE, 'w')
 
-	# calculate target flow time
-	if backend == 'LIMS':
-		ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
-	else:
-		ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
+    # calculate target flow time
+    if backend == 'LIMS':
+        ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
+    else:
+        ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 
-	# initial educated guess.
-	# Making this a big number helps with the iteration counts
-	p = PMap(kxx=5e-8)  # current guess
-	pp = PMap(kxx=6e-8) # previous guess
+    # initial educated guess.
+    # Making this a big number helps with the iteration counts
+    p = PMap(kxx=5e-8)  # current guess
+    pp = PMap(kxx=6e-8) # previous guess
 
-	pert = 0.8
+    pert = 0.8
 
-	cost = 0
-	pcost = 0
-	mcost = 0
-	ncost = 0
-	costs = []
+    cost = 0
+    pcost = 0
+    mcost = 0
+    ncost = 0
+    costs = []
 
-	for t in range(n_of_iters):
+    for t in range(n_of_iters):
 
-		l = '' # this is the logger string
-		if backend == 'LIMS':
-			ft = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
-		else:
-			ft = calculate_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
+        l = '' # this is the logger string
+        if backend == 'LIMS':
+            ft = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
+        else:
+            ft = calculate_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
 
-		pcost = cost
-		cost = np.linalg.norm(ft_t - ft, 2)
-		costs.append(cost)
-		mcost = max(mcost, cost)
-		ncost = abs(cost) / mcost
+        pcost = cost
+        cost = np.linalg.norm(ft_t - ft, 2)
+        costs.append(cost)
+        mcost = max(mcost, cost)
+        ncost = abs(cost) / mcost
 
-		l += '{:5} '.format(t)
-		l += 'x: {:10.4e} '.format(p.kxx)
-		l += 'c: {:10.4e} '.format(cost)
-		l += 'nc: {:7.6e} '.format(ncost)
+        l += '{:5} '.format(t)
+        l += 'x: {:10.4e} '.format(p.kxx)
+        l += 'c: {:10.4e} '.format(cost)
+        l += 'nc: {:7.6e} '.format(ncost)
 
-		if cost < threshold:
-			logging.info(l)
-			l  = 'SUCCESS in {} iterations '.format(t)
-			l += 'kxx target was {}'.format(p_t.kxx)
-			logging.warning(l)
+        if cost < threshold:
+            logging.info(l)
+            l  = 'SUCCESS in {} iterations '.format(t)
+            l += 'kxx target was {}'.format(p_t.kxx)
+            logging.warning(l)
 
-			trials.append(t)
-			t = 'cost function for target kxx: {:14.4e}'.format(p_t.kxx)
-			#plot_item(costs[1:], t)
-			#print('lims', ft_t)
-			#print('model', ft)
-			t = 'Flowfront when kxx: {:14.4e}'.format(p_t.kxx)
-			#show_imgs(ft_t, ft, t)
-			break
+            trials.append(t)
+            t = 'cost function for target kxx: {:14.4e}'.format(p_t.kxx)
+            #plot_item(costs[1:], t)
+            #print('lims', ft_t)
+            #print('model', ft)
+            t = 'Flowfront when kxx: {:14.4e}'.format(p_t.kxx)
+            #show_imgs(ft_t, ft, t)
+            break
 
-		update =  np.sign(pp.kxx - p.kxx) * pert * np.random.random() * p.kxx * ncost
-		if update == 0:
-			logging.error('FAIL: update value reached to 0')
-			exit()
-		pp.kxx = p.kxx
-		p.kxx -= update
-		l += 'u: {: 4.5e}'.format(update)
-		logging.info(l)
+        update =  np.sign(pp.kxx - p.kxx) * pert * np.random.random() * p.kxx * ncost
+        if update == 0:
+            logging.error('FAIL: update value reached to 0')
+            exit()
+        pp.kxx = p.kxx
+        p.kxx -= update
+        l += 'u: {: 4.5e}'.format(update)
+        logging.info(l)
 
-	else:
-		#print('lims', ft_t)
-		#print('model', ft)
-		logging.info(l)
-		l  = 'FAIL in {}th trial. '.format(r)
-		l += 'kxx target was {}. '.format(p_t.kxx)
-		l += 'we ended at {}'.format(p.kxx)
-		logging.error(l)
-		break
+    else:
+        #print('lims', ft_t)
+        #print('model', ft)
+        logging.info(l)
+        l  = 'FAIL in {}th trial. '.format(r)
+        l += 'kxx target was {}. '.format(p_t.kxx)
+        l += 'we ended at {}'.format(p.kxx)
+        logging.error(l)
+        break
 
 else:
-	logging.error('Success average is {} iterations over {} trials'.format(np.mean(trials), len(k)))
+    logging.error('Success average is {} iterations over {} trials'.format(np.mean(trials), len(k)))
