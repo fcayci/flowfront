@@ -3,7 +3,7 @@ class PMap():
 
     def __init__(self, kxx=0, kyy=None, kxy=None, krt=None):
         """initialize permeability based on what is passed passed"""
-        if kxx : self.kxx = kxx
+        if kxx.any() : self.kxx = kxx
         if kyy : self.kyy = kyy
         if kxy :
             self.kxy = kxy

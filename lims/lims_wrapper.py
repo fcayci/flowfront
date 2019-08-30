@@ -91,7 +91,7 @@ def create_dmp(fname, bsize, nsize, p, c):
         for j in range(len(g[0])-1):
             f.write('{:>6}{:>5}{:>6}{:>6}{:>6}{:>6}'.format(t, 4, g[i, j], g[i, j+1],g[i+1, j+1], g[i+1, j]))
             f.write('                             ')
-            f.write('{:>7.3f}{:>16.6f}{:> 16.4e}{:> 16.4e}{:> 16.4e}'.format(height, vf, kxx, kxy, kyy))
+            f.write('{:>7.3f}{:>16.6f}{:> 16.4e}{:> 16.4e}{:> 16.4e}'.format(height, vf, kxx[j], kxy, kyy))
             f.write('\r\n')
             t += 1
 
@@ -131,6 +131,7 @@ def run_lims(lb):
 
 def read_res(fname, nsize):
     """Reads the result dmp file and returns the fill time array
+    and pressure values at each node
     fname: the name of the run file to read
     """
     from numpy import array, float64
@@ -139,11 +140,14 @@ def read_res(fname, nsize):
 
     with open(file_loc + res, 'r') as f:
         ff = []
+        pr = []
         save = False
         for line in f:
-            if save == True:
+            if save:
                 try:
-                    ff.append(float64(line.strip().split(' ')[-1]))
+                    x = line.strip().split()
+                    ff.append(float64(x[-1]))
+                    pr.append(float64(x[1]))
                 except:
                     l = 'skipping: {}'.format(line)
                     logging.debug(l)
@@ -152,6 +156,8 @@ def read_res(fname, nsize):
                 save = True
 
     ff = array(ff)
+    pr = array(pr)
     ff.resize(nsize)
+    pr.resize(nsize)
 
-    return ff
+    return ff, pr

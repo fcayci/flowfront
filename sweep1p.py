@@ -13,7 +13,7 @@ BOARDSIZE = (0.2, 0.4) # board size in meters (y, x)
 NODESIZE  = (11, 21)   # number of nodes in each direction (y, x)
 costs = []             # array to hold the costs for each run
 backend = 'LIMS'       # choose backend : LIMS or XXX
-xsamples = 1001        # number of samples for kxx testing
+xsamples = 101        # number of samples for kxx testing
 
 # create a target kxx vector to test between given log space
 # e.g: 100 kxx values between 1e-11 and 1e-8
@@ -26,26 +26,25 @@ c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 # sw : south west
 gatenodes = set_gatenodes(NODESIZE, 'w')
 
-### Create target flowfront
-p_t = PMap(kxx=1.421e-12)
+# create target flowfront
+m = np.ones(NODESIZE[1])
+p_t = PMap(kxx=m*1.421e-12)
 
 if backend == 'LIMS':
-    ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
+    ft_t, pr_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 else:
-    ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
+    ft_t, pr_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
 
 for r in range(len(k)):
 
-    ### Create target flowfront
-    p = PMap(kxx=k[r])
-    # randomize kxx over the given bounds
-    #p_t.randomize(lower=1e-14, upper=1e-8)
+    # create source flowfront
+    p = PMap(kxx=m*k[r])
 
     # calculate target flow time
     if backend == 'LIMS':
-        ft = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
+        ft, pr = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
     else:
-        ft = calculate_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
+        ft, pr = calculate_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
 
     cost = np.linalg.norm(ft_t - ft, 2)
     costs.append(cost)
@@ -56,7 +55,7 @@ labels = np.array2string(k[xpts], precision=2).strip('][').split(' ')
 #print(x)
 
 plt.semilogy(costs)
-plt.title('1 parameter sweep on kxx for target kxx_t={:4.3e}'.format(p_t.kxx))
+plt.title('1 parameter sweep on kxx for target kxx_t={:4.3e}'.format(p_t.kxx[0]))
 plt.xlabel('kxx')
 plt.xticks(xpts, labels, rotation=30)
 plt.ylabel('cost (l2norm of target and calculated flowfronts)')

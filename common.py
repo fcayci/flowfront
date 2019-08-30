@@ -23,14 +23,36 @@ def _ft1d(bsize, nsize, p, c, gatelocs=None):
     if type(gatelocs) is not np.ndarray:
         gatelocs = np.array(gatelocs)
 
-    h = c.mu * c.fi / (p.kxx * c.deltaP)
+    hx = lambda j, pr: c.mu * c.fi / (2 * p.kxx[j] * pr)
 
     for i in range(nsize[0]):
         if i*nsize[1]+1 in gatelocs:
+            pr = c.deltaP
             for j in range(1, nsize[1]):
-                g[i, j] = 0.5 * (j*stepx) * (j*stepx + stepx) * h
+                #if j <= (nsize[1]/2):
+                #g[i, j] = (j*stepx) * (j+1) * stepx * hx(j,pr)
+                #g[i, j] = (((j+0.5)*stepx)**2 - ((j-0.5)*stepx)**2) * hx(j,pr)
+                #g[i, j] = stepx**2 * (2*j) * hx(j-1,pr) + g[i, j-1]
+                #g[i, j] = (((j+0.5)*stepx)**2 - ((j-0.5)*stepx)**2) * hx(j-1,pr) + g[i, j-1]
+                g[i, j] = ((j+0.5)*stepx)**2 * hx(j-1,pr) - ((j-0.5)*stepx)**2 * hx(j-1,pr) + g[i, j-1]
+                if p.kxx[j-1] != p.kxx[j]:
+                    pr = c.deltaP*(nsize[1]-1)/(nsize[1]-j)
+                #    g[i, j] =  ((j+0.5)**2 - (j-0.5)**2) * stepx**2 * hx(j-1, pr) + g[i, j-1]
+                #  j**2 + j + 0.25 - j**2 + j - 0.25
+                #g[i, j] =  hx(j-1, pr) * j * ((1.5*stepx)**2 - (0.5*stepx)**2)
+                #pr = c.deltaP*(nsize[1]-j)/(nsize[1]-1)
+                #print(hx(j-1, pr), end=' , ')
+                # res = 0
+                # for jj in range(j):
+                #     res += (jj+.5)**2 * stepx**2 * hx(jj)
+                # g[i, j] = res
+                # else:
+                #     z = j-int(nsize[1]/2)-1
+                #     pr = c.deltaP - c.deltaP * ((nsize[1]-1)/2) / (nsize[1]-1)
+                #     g[i, j] =  ((z+0.5)**2 - (z-0.5)**2) * stepx**2 * hx(j-1, pr) + g[i, j-1]
+
             # Fix for lims' last step
-            g[i, -1] = 0.5 * stepx**2 * (nsize[1]-1)**2 * h
+            #g[i, -1] = stepx**2 * (nsize[1]-1)**2 * hx(j, c.deltaP)
 
     return g
 
@@ -46,18 +68,23 @@ def _ft2d(bsize, nsize, p, c, gatelocs=None):
     if type(gatelocs) is not np.ndarray:
         gatelocs = np.array(gatelocs)
 
-    hx = c.mu * c.fi / (p.kxx * c.deltaP)
-    hy = c.mu * c.fi / (p.kyy * c.deltaP)
+    hx = lambda j, pr: 0.5 * c.mu * c.fi / (p.kxx[j] * pr)
+    hy = lambda pr: 0.5 * c.mu * c.fi / (p.kyy * pr)
+
+    pr = c.deltaP
 
     for i in range(nsize[0]):
         if i*nsize[1]+1 in gatelocs:
             for j in range(1, nsize[1]):
-                g[i, j] = 0.5 * (j*stepx) * (j*stepx + stepx) * hx
+                pass
+                #g[i, j] = ((j*stepx)**2 - ((j-1)*stepx)**2) * hx + g[i, j-1]
+                #g[i, j] = 1/ (-1/(stepy**2 * (2*j) * hy(pr) + 1/(stepx**2 * (2*j) * hx(j-1, pr))) + g[i, j-1]
+                #g[i, j] = (j*stepx) * (j+1) * stepx * hx
             # Fix for lims' last step
-            g[i, -1] = 0.5 * stepx**2 * (nsize[1]-1)**2 * hx
-    for j in range(nsize[1]):
-        for i in range(1, nsize[0]):
-            g[i, j] = g[i-1, j] + 0.5 * (stepy) * (2 * stepy) * hy
+            #g[i, -1] = stepx**2 * (nsize[1]-1)**2 * hx(nsize[1]-1, pr)
+    # for j in range(nsize[1]):
+    #     for i in range(1, nsize[0]):
+    #         g[i, j] = g[i-1, j] + 0.5 * (stepy) * (2 * stepy) * hy
 
     return g
 
