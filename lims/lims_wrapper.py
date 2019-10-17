@@ -1,7 +1,8 @@
-# wrapper for running lims
+"""wrapper for running lims, creating and parsing necessary files
+"""
 import logging
 
-file_loc = 'runs/'
+run_loc = '../runs/'
 
 def create_lb(fname, gatenodes, deltaP):
     """creates the lb file
@@ -11,11 +12,14 @@ def create_lb(fname, gatenodes, deltaP):
         gatenodes (list): is the gate node array
         deltaP (float): is the deltaP from equation
     """
+
+    print(run_loc)
     lb = fname + '.lb'
     dmp = fname + '.dmp'
     res = fname + '_res.dmp'
+    f_loc = run_loc + lb
 
-    f = open(file_loc + lb, 'w')
+    f = open(f_loc, 'w')
     f.write('PROC simu\r\n')
     f.write('  DO\r\n')
     f.write('    SOLVE\r\n')
@@ -23,8 +27,9 @@ def create_lb(fname, gatenodes, deltaP):
     f.write('  LOOP WHILE ((SONUMBEREMPTY() > 0) AND (SONUMBERFILLED() > 0))\r\n')
     f.write('ENDPROC\r\n')
     f.write('\r\n')
-    f.write('CHANGEDIR "' + file_loc + '"\r\n')
+    f.write('CHANGEDIR "' + run_loc + '"\r\n')
     f.write('READ "' + dmp + '"\r\n')
+
     try:
         for node in gatenodes:
             f.write('SETGATE ' + str(node) + ', 1, ' + '{:.6e}'.format(deltaP) + '\r\n')
@@ -41,9 +46,9 @@ def create_lb(fname, gatenodes, deltaP):
     f.write('EXIT\r\n')
     f.close()
 
-    l = 'created file: {}'.format(file_loc + lb)
+    l = 'created file: {}'.format(f_loc)
     logging.debug(l)
-    return file_loc + lb
+    return f_loc
 
 
 def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
@@ -66,7 +71,7 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
 
     y, x = mgrid[0:boardsize[0]:nodes[0]*1j, 0:boardsize[1]:nodes[1]*1j]
 
-    f = open(file_loc+dmp, 'w')
+    f = open(run_loc + dmp, 'w')
     f.write('Number of nodes : ' + str(len(y)*len(y[0])) + '\r\n')
     f.write('{:<12} {:<14} {:<14} {:<6}\r\n'.format(' Index', 'x', 'y', 'z'))
     f.write('===================================================\r\n')
@@ -90,7 +95,7 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
         for j in range(len(g[0])-1):
             f.write('{:>6}{:>5}{:>6}{:>6}{:>6}{:>6}'.format(t, 4, g[i, j], g[i, j+1],g[i+1, j+1], g[i+1, j]))
             f.write('                             ')
-            f.write('{:>7.3f}{:>16.6f}{:> 16.4e}{:> 16.4e}{:> 16.4e}'.format(height, vf, kxx[i,j], kxy, kyy))
+            f.write('{:>7.3f}{:>16.6f}{:> 16.4e}{:> 16.4e}{:> 16.4e}'.format(height, vf, kxx[i,j], kxy[i,j], kyy[i,j]))
             f.write('\r\n')
             t += 1
 
@@ -106,9 +111,9 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
     f.write('Viscosity :            ' + str(viscosity) + '\r\n')
     f.close()
 
-    l = 'created file: {}'.format(file_loc + dmp)
+    l = 'created file: {}'.format(run_loc + dmp)
     logging.debug(l)
-    #return file_loc + dmp
+    #return run_loc + dmp
 
 
 def run_lims(lb):
@@ -137,7 +142,7 @@ def read_res(fname, nodes):
 
     res = fname + '_res.dmp'
 
-    with open(file_loc + res, 'r') as f:
+    with open(run_loc + res, 'r') as f:
         ff = []
         pr = []
         save = False
