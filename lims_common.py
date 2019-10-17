@@ -85,7 +85,21 @@ def lims_flowtime(bsize, nsize, p, c, fname='run1', gatenodes=None):
         gatenodes = arange(1, nsize[0]*nsize[1], nsize[1])
 
     lb = lw.create_lb(fname, gatenodes, c.deltaP)
-    lw.create_dmp(fname, bsize, nsize, p, c)
+
+    if not hasattr(p, 'kxy') or kxy is None:
+        kxy = 0
+    else:
+        kxy = p.kxy
+    if not hasattr(p, 'kyy') or kyy is None:
+        kyy = 0
+    else:
+        kyy = p.kyy
+    if not hasattr(p, 'krt') or krt is None:
+        krt = 0
+    else:
+        krt = p.krt
+
+    lw.create_dmp(fname, bsize, nsize, c.mu, c.fi, c.deltaP, p.kxx, kyy, kxy, krt)
     lw.run_lims(lb)
     return lw.read_res(fname, nsize)
 
