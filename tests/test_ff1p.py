@@ -59,22 +59,24 @@ g.set_coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 g.set_backend(backend)
 
 # create a uniform kxx array
-kxx = np.random.uniform(1, 100) * 1e-11
+kxx = 14.31 * 1e-11
 # set permeability of the geometry
 g.set_permeability(kxx=kxx)
 # create and place a signal defect point
-defx = np.random.randint(3, g.xnodes)
-defy = np.random.randint(3, g.ynodes)
-print('placed defect on: x:{} and y:{} nodes'.format(defx, defy))
-g.kxx[defx, defy] = np.random.uniform(1, 100) * 1e-13
+defx = 11 #np.random.randint(3, g.xnodes-3)
+defy = 4 #np.random.randint(3, g.ynodes-3)
+print('placed defect on: x:{} and y:{} nodes'.format(defy, defx))
+g.kxx[defy, defx] = 62.32 * 1e-13
 
 # calculate flowfront
 g.get_flowfront()
 
 # print flowfront
 if verbose:
-    g.print_flowfront()
+    g.print_filltime()
+    g.print_pressure()
 
 # display flowfront and fill times
 g.show_flowfront()
-g.plot_filltimes(showlegend=True)
+g.plot_filltime(showlegend=True)
+g.plot_pressure(showlegend=True)

@@ -208,14 +208,26 @@ class Geometry():
             self.ff = ff_1d(self)
 
 
-    def print_flowfront(self):
+    def print_filltime(self):
         """Print flowfront
         """
         if not hasattr(self, 'ff'):
             logging.warning('>> no flowfront to print, calculating flowfront')
             self.get_flowfront()
 
+        print('filltime:')
         print(self.ff)
+
+
+    def print_pressure(self):
+        """Print pressure
+        """
+        if not hasattr(self, 'pr'):
+            logging.warning('>> no pressure data to print, calculating flowfront/pressure')
+            self.get_flowfront()
+
+        print('pressure data:')
+        print(self.pr)
 
 
     def show_flowfront(self):
@@ -237,8 +249,8 @@ class Geometry():
         plt.show()
 
 
-    def plot_filltimes(self, showlegend=True):
-        """Plot fill times for all the rows
+    def plot_filltime(self, showlegend=True):
+        """Plot filltime for all the rows
 
         Kwargs:
             showlegend (bool): Show legend on the plot
@@ -252,16 +264,40 @@ class Geometry():
 
         plt.plot(transpose(self.ff))
 
-        plt.title('fill times for all nodes')
+        plt.title('filltime for all nodes')
         plt.xlabel('x nodes')
-        plt.ylabel('fill times')
+        plt.ylabel('filltime')
         if showlegend:
             plt.legend(['row' + str(i+1) for i in range(self.ynodes)])
 
         plt.show()
 
 
-    def test(self, printflow=True, showflow=True, plotfill=True):
+    def plot_pressure(self, showlegend=True):
+        """Plot pressure for all the rows
+
+        Kwargs:
+            showlegend (bool): Show legend on the plot
+        """
+        import matplotlib.pyplot as plt
+        from numpy import nanmax, transpose
+
+        if not hasattr(self, 'pr'):
+            logging.warning('WARNING >> no pressure data to plot, calculating flowfront/pressure')
+            self.get_flowfront()
+
+        plt.plot(transpose(self.pr))
+
+        plt.title('pressure values for all nodes')
+        plt.xlabel('x nodes')
+        plt.ylabel('pressure level')
+        if showlegend:
+            plt.legend(['row' + str(i+1) for i in range(self.ynodes)])
+
+        plt.show()
+
+
+    def test(self, printfill=True, showflow=True, plotfill=True, printpressure=True, plotpressure=True):
         """calculate flowfront with default values with the given geometry size/ndoes
 
         Kwargs:
@@ -281,12 +317,17 @@ class Geometry():
 
             self.set_permeability(kxx=kxx, kyy=None, kxy=None, krt=None)
             self.get_flowfront()
-            if printflow:
-                self.print_flowfront()
+            if printfill:
+                self.print_filltime()
             if showflow:
                 self.show_flowfront()
             if plotfill:
-                self.plot_filltimes(showlegend=True)
+                self.plot_filltime(showlegend=True)
+            if printpressure:
+                self.print_pressure()
+            if plotpressure:
+                self.plot_pressure(showlegend=True)
+
         except Exception as e:
             print(e)
             exit()
