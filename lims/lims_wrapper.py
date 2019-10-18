@@ -13,7 +13,6 @@ def create_lb(fname, gatenodes, deltaP):
         deltaP (float): is the deltaP from equation
     """
 
-    print(run_loc)
     lb = fname + '.lb'
     dmp = fname + '.dmp'
     res = fname + '_res.dmp'
@@ -68,10 +67,11 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
         raise ValueError('fi cannot be higher than 1')
     vf = 1 - fi
     dmp = fname + '.dmp'
+    f_loc = run_loc + dmp
 
     y, x = mgrid[0:boardsize[0]:nodes[0]*1j, 0:boardsize[1]:nodes[1]*1j]
 
-    f = open(run_loc + dmp, 'w')
+    f = open(f_loc, 'w')
     f.write('Number of nodes : ' + str(len(y)*len(y[0])) + '\r\n')
     f.write('{:<12} {:<14} {:<14} {:<6}\r\n'.format(' Index', 'x', 'y', 'z'))
     f.write('===================================================\r\n')
@@ -81,7 +81,7 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
             f.write('{:>6}{:>15.6f}{:>15.6f}{:>15.6}\r\n'.format(i*nodes[1]+j+1, x[i,j], y[i, j], 0.0))
 
     elements = (len(y)-1)*(len(y[0])-1)
-    if krt is not None:
+    if krt is not 0:
         elements += len(y[0]) -1
     f.write('Number of elements : ' + str(elements) + '\r\n')
     f.write('  Index  NNOD  N1    N2    N3   (N4)  (N5)  (N6)  (N7)  (N8)    h              Vf             Kxx             Kxy             Kyy           Kzz           Kzx            Kyz\r\n')
@@ -99,7 +99,7 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
             f.write('\r\n')
             t += 1
 
-    if krt is not None:
+    if krt is not 0:
         for j in range(0, nodes[1]-1):
             f.write('{:>6}{:>5}{:>6}{:>6}'.format(t, 2, g[-1, j+1], g[-1, j]))
             f.write('                                         ')
@@ -111,9 +111,9 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
     f.write('Viscosity :            ' + str(viscosity) + '\r\n')
     f.close()
 
-    l = 'created file: {}'.format(run_loc + dmp)
+    l = 'created file: {}'.format(f_loc)
     logging.debug(l)
-    #return run_loc + dmp
+    #return f_loc
 
 
 def run_lims(lb):
@@ -121,7 +121,7 @@ def run_lims(lb):
     from tempfile import NamedTemporaryFile
     import platform
 
-    limscmd = ['lims/lims', '-l'+lb]
+    limscmd = ['../lims/lims', '-l' + lb]
 
     if platform.system() == 'Darwin' or platform.system() == 'Linux':
         limscmd.insert(0, 'wine')
