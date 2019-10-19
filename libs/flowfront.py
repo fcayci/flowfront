@@ -3,7 +3,7 @@
 
 from libs.geometry import Geometry
 
-def ff_1d(geom):
+def ft_1d(geom):
     """Calculate 1d flowfront
     """
     from numpy import zeros
@@ -16,21 +16,28 @@ def ff_1d(geom):
     else:
         raise ValueError('ERROR >> geom does not have kxx attribute')
 
-    stepx, stepy = geom.stepx, geom.stepy
+    stepx = geom.stepx
+    deltaP = geom.deltaP
+    xnodes, ynodes = geom.xnodes, geom.ynodes
     g = zeros(geom.nodes)
+    p = zeros(geom.nodes)
 
-    for i in range(geom.ynodes):
-        if i*geom.xnodes+1 in geom.gatenodes:
-            pr = geom.deltaP
-            for j in range(1, geom.xnodes):
-                g[i, j] = ((j+0.5)*stepx)**2 * hx(i, j-1, pr) - ((j-0.5)*stepx)**2 * hx(i, j-1,pr) + g[i, j-1]
+    for i in range(ynodes):
+        if i*xnodes+1 in geom.gatenodes:
+            pr = deltaP
+            p[i, 0] = pr
+            for j in range(1, xnodes):
+                z = xnodes-1 - j
+                pr = deltaP * ((xnodes-1-stepx)-j) / (xnodes-1)
+                g[i, j] =  ((z+0.5)**2 - (z-0.5)**2) * stepx**2 * hx(i, j-1, pr) + g[i, j-1]
+                #g[i, j] = ((j+0.5)*stepx)**2 * hx(i, j-1, pr) - ((j-0.5)*stepx)**2 * hx(i, j-1, pr) + g[i, j-1]
             # Fix for lims' last step
             #g[i, -1] = stepx**2 * (geom.xnodes-1)**2 * hx(i, j, pr)
 
     return g
 
 
-def ff_lims(geom, fname='run1'):
+def ft_lims(geom, fname='run1'):
     """call lims and return the flow time based on the given parameters
 
     Args:

@@ -187,7 +187,7 @@ class Geometry():
     def get_flowfront(self, fname="run1"):
         """Get flowfront
         """
-        from libs.flowfront import ff_1d, ff_lims
+        from libs.flowfront import ft_1d, ft_lims
 
         if not hasattr(self, 'gatenodes'):
             raise AttributeError('ERROR >> Set gate node locations!')
@@ -200,23 +200,23 @@ class Geometry():
 
         if self.backend == 'LIMS':
             logging.info('>> Calculating flowfront in LIMS')
-            self.ff, self.pr = ff_lims(self, fname)
+            self.ft, self.pr = ft_lims(self, fname)
 
         elif self.backend == 'PYT':
             logging.info('>> Calculating flowfront in python')
             logging.info('TODO >> 1d checking')
-            self.ff = ff_1d(self)
+            self.ft = ft_1d(self)
 
 
     def print_filltime(self):
         """Print flowfront
         """
-        if not hasattr(self, 'ff'):
+        if not hasattr(self, 'ft'):
             logging.warning('>> no flowfront to print, calculating flowfront')
             self.get_flowfront()
 
         print('filltime:')
-        print(self.ff)
+        print(self.ft)
 
 
     def print_pressure(self):
@@ -236,7 +236,7 @@ class Geometry():
         import matplotlib.pyplot as plt
         from numpy import nanmax
 
-        if not hasattr(self, 'ff'):
+        if not hasattr(self, 'ft'):
             logging.warning('>> no flowfront to show, calculating flowfront')
             self.get_flowfront()
 
@@ -244,7 +244,7 @@ class Geometry():
         cmap.set_under(color='black')
 
         plt.title('flowfront')
-        plt.imshow(self.ff, cmap=cmap, interpolation="bilinear", origin="lower", vmin=0.0000001)
+        plt.imshow(self.ft, cmap=cmap, interpolation="bilinear", origin="lower", vmin=0.0000001)
         plt.colorbar()
         plt.show()
 
@@ -258,11 +258,11 @@ class Geometry():
         import matplotlib.pyplot as plt
         from numpy import nanmax, transpose
 
-        if not hasattr(self, 'ff'):
+        if not hasattr(self, 'ft'):
             logging.warning('WARNING >> no flowfront to plot, calculating flowfront')
             self.get_flowfront()
 
-        plt.plot(transpose(self.ff))
+        plt.plot(transpose(self.ft))
 
         plt.title('filltime for all nodes')
         plt.xlabel('x nodes')

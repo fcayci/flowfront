@@ -62,13 +62,13 @@ target.set_permeability(kxx=kxx)
 target.get_flowfront('target')
 
 logging.info('Target flowfront:')
-logging.info(target.print_flowfront())
+logging.info(target.print_filltime())
 
 costs = []
 for k in kxx_list:
     trial.set_permeability(kxx=k)
     trial.get_flowfront('trial')
-    cost = np.linalg.norm(target.ff - trial.ff, 2)
+    cost = np.linalg.norm(target.ft - trial.ft, 2)
     costs.append(cost)
 
 # hacky way to get the 2 precision numbers from the array to display...

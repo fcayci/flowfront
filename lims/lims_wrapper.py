@@ -143,14 +143,14 @@ def read_res(fname, nodes):
     res = fname + '_res.dmp'
 
     with open(run_loc + res, 'r') as f:
-        ff = []
+        ft = []
         pr = []
         save = False
         for line in f:
             if save:
                 try:
                     x = line.strip().split()
-                    ff.append(float64(x[-1]))
+                    ft.append(float64(x[-1]))
                     pr.append(float64(x[1]))
                 except:
                     l = 'skipping: {}'.format(line)
@@ -159,9 +159,9 @@ def read_res(fname, nodes):
             if "Fill Time" in line:
                 save = True
 
-    ff = array(ff)
+    ft = array(ft)
     pr = array(pr)
-    ff.resize(nodes)
+    ft.resize(nodes)
     pr.resize(nodes)
 
-    return ff, pr
+    return ft, pr
