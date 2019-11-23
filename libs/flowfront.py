@@ -29,12 +29,13 @@ def ft_1d(geom):
             for j in range(1, xnodes):
                 z = xnodes-1 - j
                 pr = deltaP * ((xnodes-1-stepx)-j) / (xnodes-1)
+                p[i, j] = pr
                 g[i, j] =  ((z+0.5)**2 - (z-0.5)**2) * stepx**2 * hx(i, j-1, pr) + g[i, j-1]
                 #g[i, j] = ((j+0.5)*stepx)**2 * hx(i, j-1, pr) - ((j-0.5)*stepx)**2 * hx(i, j-1, pr) + g[i, j-1]
             # Fix for lims' last step
             #g[i, -1] = stepx**2 * (geom.xnodes-1)**2 * hx(i, j, pr)
 
-    return g
+    return g, p
 
 
 def ft_lims(geom, fname='run1'):

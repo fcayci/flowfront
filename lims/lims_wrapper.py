@@ -1,17 +1,17 @@
-"""wrapper for running lims, creating and parsing necessary files
-"""
+'''wrapper for running lims, creating and parsing necessary files
+'''
 import logging
 
 run_loc = '../runs/'
 
 def create_lb(fname, gatenodes, deltaP):
-    """creates the lb file
+    '''creates the lb file
 
     Args:
         fname (string): is the name of the file to be generated
         gatenodes (list): is the gate node array
         deltaP (float): is the deltaP from equation
-    """
+    '''
 
     lb = fname + '.lb'
     dmp = fname + '.dmp'
@@ -51,11 +51,11 @@ def create_lb(fname, gatenodes, deltaP):
 
 
 def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
-    """creates the dmp file
+    '''creates the dmp file
 
     Args:
         fname (string): is the name of the file to be generated
-    """
+    '''
     from numpy import arange, mgrid
 
     # TODO: add kxx, kxy, kyy, krt shape checking
@@ -134,10 +134,10 @@ def run_lims(lb):
 
 
 def read_res(fname, nodes):
-    """Reads the result dmp file and returns the fill time array
+    '''Reads the result dmp file and returns the fill time array
     and pressure values at each node
     fname: the name of the run file to read
-    """
+    '''
     from numpy import array, float64
 
     res = fname + '_res.dmp'

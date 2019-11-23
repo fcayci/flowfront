@@ -1,5 +1,5 @@
-"""Holds Geometry class for generating the test
-"""
+'''Holds Geometry class for problem setup
+'''
 import logging
 
 class Geometry():
@@ -7,12 +7,12 @@ class Geometry():
     backends = ['LIMS', 'PYT']
 
     def __init__(self, size, nodes):
-        """Geometry class for 2d flowfront calculation
+        '''Geometry class for 2d flowfront calculation
 
         Args:
             size (tuple): Geometry size in meters (y, x)
             nodes (tuple): number of nodes in each direction (y, x)
-        """
+        '''
         self.size = size
         self.y, self.x = size[0], size[1]
         self.nodes = nodes
@@ -26,55 +26,43 @@ class Geometry():
 
 
     def set_gatenodes(self, gateloc):
-        """Set the gate node locations
+        '''Set the gate node locations
 
         Args:
             gateloc (string): set the location of the gatenodes
 
-            possible values are: 'w', 'nw', 'sw', 'ww, 'n', 's'
-        """
+            possible values are: 'w', 'nw', 'sw', 'mw, 'n', 's'
+            west, north, south, middle
+        '''
         from numpy import arange, array
 
         g = arange(1, self.xnodes*self.ynodes + 1)
         g.resize(self.nodes)
 
-        # west
-        if gateloc == 'w':
-            self.gatenodes = g[:, 0]
-        # north
-        elif gateloc == 'n':
-            self.gatenodes = g[-1]
-        # south
-        elif gateloc == 's':
-            self.gatenodes = g[0]
-        # north west
-        elif gateloc == 'nw':
-            self.gatenodes = array(g[-1, 0])
-        # south west
-        elif gateloc == 'sw':
-            self.gatenodes = array(g[0, 0])
-        # middle of west
-        elif gateloc == 'ww':
-            self.gatenodes = array(g[self.ynodes//2, 0])
-        else:
-            raise ValueError('not a known gate location')
+        if   gateloc ==  'w': self.gatenodes = g[:, 0]
+        elif gateloc ==  'n': self.gatenodes = g[-1]
+        elif gateloc ==  's': self.gatenodes = g[0]
+        elif gateloc == 'nw': self.gatenodes = array(g[-1, 0])
+        elif gateloc == 'sw': self.gatenodes = array(g[0, 0])
+        elif gateloc == 'mw': self.gatenodes = array(g[self.ynodes//2, 0])
+        else: raise ValueError('not a known gate location')
 
 
     def set_coeffs(self, mu, fi, deltaP):
-        """Sets coefficients for Darcy's equation
+        '''Sets coefficients for Darcy's equation
 
         Args:
             mu (float): mu coefficient
             fi (float): fi coefficient
             deltaP (float): deltaP coefficient
-        """
+        '''
         self.mu = mu
         self.fi = fi
         self.deltaP = deltaP
 
 
     def set_permeability(self, kxx, kyy=0, kxy=0, krt=0):
-        """Sets permeability for each direction
+        '''Sets permeability for each direction
 
         Args:
             kxx (float or numpy.ndarray): kxx values
@@ -82,19 +70,16 @@ class Geometry():
             kyy (float or numpy.ndarray): kyy values
             kxy (float or numpy.ndarray): kxy values
             krt (float or numpy.ndarray): krt values
-        """
+        '''
         self.__set_kxx(kxx)
         self.__set_kyy(kyy)
         self.__set_kxy(kxy)
-
-        if krt is not 0:
-            raise NotImplementedError('ERROR >> krt is not yet implemented')
         self.__set_krt(krt)
 
 
     def __set_kxx(self, kxx):
-        """set kxx values
-        """
+        '''set kxx values
+        '''
         from numpy import full, ndarray
 
         if isinstance(kxx, float) or isinstance(kxx, int):
@@ -117,8 +102,8 @@ class Geometry():
 
 
     def __set_kyy(self, kyy):
-        """set kyy values
-        """
+        '''set kyy values
+        '''
         from numpy import full, ndarray
 
         if isinstance(kyy, float) or isinstance(kyy, int):
@@ -141,8 +126,8 @@ class Geometry():
 
 
     def __set_kxy(self, kxy):
-        """set kxy values
-        """
+        '''set kxy values
+        '''
         from numpy import full, ndarray
 
         if isinstance(kxy, float) or isinstance(kxy, int):
@@ -165,19 +150,21 @@ class Geometry():
 
 
     def __set_krt(self, krt):
-        """set krt values
-        """
+        '''set krt values
+        '''
+        if krt is not 0:
+            raise NotImplementedError('ERROR >> krt is not yet implemented')
         self.krt = krt
 
 
     def set_backend(self, backend):
-        """Choose a backend for flowfront calculation
+        '''Choose a backend for flowfront calculation
 
         Args:
             backend (string): choose the backend
 
             possible values are: LIMS or PYT
-        """
+        '''
         if backend not in self.backends:
             raise NotImplementedError('ERROR >> Unknown backend. should be either LIMS or PYT')
 
@@ -185,8 +172,8 @@ class Geometry():
 
 
     def get_flowfront(self, fname="run1"):
-        """Get flowfront
-        """
+        '''Get flowfront
+        '''
         from libs.flowfront import ft_1d, ft_lims
 
         if not hasattr(self, 'gatenodes'):
@@ -204,35 +191,32 @@ class Geometry():
 
         elif self.backend == 'PYT':
             logging.info('>> Calculating flowfront in python')
-            logging.info('TODO >> 1d checking')
-            self.ft = ft_1d(self)
+            self.ft, self.pr = ft_1d(self)
 
 
-    def print_filltime(self):
-        """Print flowfront
-        """
-        if not hasattr(self, 'ft'):
-            logging.warning('>> no flowfront to print, calculating flowfront')
-            self.get_flowfront()
-
+    def print_filltime(self, row=None):
+        '''Print flowfront
+        '''
         print('filltime:')
-        print(self.ft)
+        if row is None:
+            print(self.ft)
+        else:
+            print(self.ft[row])
 
 
-    def print_pressure(self):
-        """Print pressure
-        """
-        if not hasattr(self, 'pr'):
-            logging.warning('>> no pressure data to print, calculating flowfront/pressure')
-            self.get_flowfront()
-
+    def print_pressure(self, row=None):
+        '''Print pressure
+        '''
         print('pressure data:')
-        print(self.pr)
+        if row is None:
+            print(self.pr)
+        else:
+            print(self.pr[row])
 
 
     def show_flowfront(self):
-        """Show flowfront
-        """
+        '''Show flowfront
+        '''
         import matplotlib.pyplot as plt
         from numpy import nanmax
 
@@ -250,11 +234,11 @@ class Geometry():
 
 
     def plot_filltime(self, showlegend=True):
-        """Plot filltime for all the rows
+        '''Plot filltime for all the rows
 
         Kwargs:
             showlegend (bool): Show legend on the plot
-        """
+        '''
         import matplotlib.pyplot as plt
         from numpy import nanmax, transpose
 
@@ -274,11 +258,11 @@ class Geometry():
 
 
     def plot_pressure(self, showlegend=True):
-        """Plot pressure for all the rows
+        '''Plot pressure for all the rows
 
         Kwargs:
             showlegend (bool): Show legend on the plot
-        """
+        '''
         import matplotlib.pyplot as plt
         from numpy import nanmax, transpose
 
@@ -298,13 +282,13 @@ class Geometry():
 
 
     def test(self, printfill=True, showflow=True, plotfill=True, printpressure=True, plotpressure=True):
-        """calculate flowfront with default values with the given geometry size/ndoes
+        '''calculate flowfront with default values with the given geometry size/ndoes
 
         Kwargs:
             printflow (bool): Print flowfront values
             showflow  (bool): Show flowfront
             plotfill (bool): Plot filltime of each node
-        """
+        '''
         from numpy import full
 
         try:
