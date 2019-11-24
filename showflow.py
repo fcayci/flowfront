@@ -1,44 +1,80 @@
-# author: Furkan Cayci
-# description: shows the flowfront
-#   based on the given parameters
+'''Show flowfront for given permeability values
 
+Description:
+------------
+  display flowfront for given permeability values.
+
+Usage:
+------
+  showflow.py -b <backend> -g <gatelocs>
+    backends: LIMS, PYT
+    gatelocs: w, n, s, nw, sw, mw
+    -v for verbose
+'''
 import numpy as np
-from common import *
-from lims_common import *
-import matplotlib.pyplot as plt
+import sys, getopt
 
-BOARDSIZE = (0.2, 0.7) # board size in meters (y, x)
-NODESIZE  = (11, 36)   # number of nodes in each direction (y, x)
+from libs.geometry import *
+from libs.flowfront import *
 
-#### Create target flowfront
+try:
+    opts, args = getopt.getopt(sys.argv[1:], 'b:g:v')
+except getopt.GetoptError:
+    print(__doc__)
+    sys.exit(2)
 
-# create coefficients
-c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
+backend = None
+gateloc = None
+verbose = False
+for o, a in opts:
+    if o == '-b':
+        backend = a
+    if o == '-g':
+        gateloc = a
+    if o == '-v':
+        verbose = True
 
-kxx = np.ones(NODESIZE[1]) * 1e-10
+if backend is None:
+    backend = 'LIMS'
+if gateloc is None:
+    gateloc = 'mw'
 
-#kxx[int(kxx.size/2):] = 2e-12
-kxx[5:] = 2e-12
+# set geometry size and number of nodes (y, x)
+g = Geometry(size=(0.2, 0.4), nodes=(11, 21))
 
-# create permeability map instance
-# elements can be accessed by p.kxx
-#p = PMap(kxx=kxx, kyy=1e-10, kxy=1e-12, krt=1e-9)
-p = PMap(kxx=kxx)
-# randomize if needed
-#p.randomize(lower=1e-14, upper=1e-8)
+# set the gate locations: w, nw, sw, ww
+g.set_gatenodes(gateloc)
 
-# set up the gates
-# w  : west
-# nw : north west
-# sw : south west
-gatenodes = set_gatenodes(NODESIZE, 'w')
+# set coefficients
+g.set_coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 
-# calculate target flow time
-ft1, pr1 = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'target', gatenodes)
-ft2 = calculate_flowtime(BOARDSIZE, NODESIZE, p, c, 'target', gatenodes)
-print('lims', ft1[0])
-print('mine', ft2[0])
-plt.plot(ft1[0], '-')
-plt.plot(ft2[0], '.')
-plt.show()
-#show_img(ft)
+# set backend for flowfront calculation: PYT, LIMS
+g.set_backend(backend)
+
+# create a uniform kxx array
+#kxx = 14.31 * 1e-11
+kxx = 1 * 1e-10
+kxy = 4 * 1e-11
+kyy = 2 * 1e-10
+krt = 5 * 1e-9
+# set permeability of the geometry
+g.set_permeability(kxx=kxx, kxy=kxy, kyy=kyy, krt=krt)
+
+# create and place a signal defect point
+defx = 11 #np.random.randint(3, g.xnodes-3)
+defy = 4 #np.random.randint(3, g.ynodes-3)
+print('placed defect on: x:{} and y:{} nodes'.format(defy, defx))
+g.kxx[defy, defx] = 62.32 * 1e-14
+
+# calculate flowfront
+g.get_flowfront()
+
+# print flowfront
+if verbose:
+    g.print_filltime()
+    g.print_pressure()
+
+# display flowfront and fill times
+g.show_flowfront()
+g.plot_filltime(showlegend=True)
+# g.plot_pressure(showlegend=True)
