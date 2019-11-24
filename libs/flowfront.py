@@ -1,11 +1,11 @@
-"""Flowfront calculation functions
-"""
+'''Flowfront calculation functions
+'''
 
 from libs.geometry import Geometry
 
 def ft_1d(geom):
-    """Calculate 1d flowfront
-    """
+    '''Calculate 1d flowfront
+    '''
     from numpy import zeros
 
     if not isinstance(geom, Geometry):
@@ -22,31 +22,34 @@ def ft_1d(geom):
     g = zeros(geom.nodes)
     p = zeros(geom.nodes)
 
+    # absolute truth without pr change
+    # g[i, j] = ((j+0.5)*stepx)**2 * hx(i, j-1, pr) - ((j-0.5)*stepx)**2 * hx(i, j-1, pr) + g[i, j-1]
+    # g[i, j] =  ((j+0.5)**2 - (j-0.5)**2) * stepx**2 * hx(i, j-1, pr) + g[i, j-1] # same as above
+
     for i in range(ynodes):
         if i*xnodes+1 in geom.gatenodes:
             pr = deltaP
             p[i, 0] = pr
             for j in range(1, xnodes):
-                z = xnodes-1 - j
-                pr = deltaP * ((xnodes-1-stepx)-j) / (xnodes-1)
                 p[i, j] = pr
-                g[i, j] =  ((z+0.5)**2 - (z-0.5)**2) * stepx**2 * hx(i, j-1, pr) + g[i, j-1]
-                #g[i, j] = ((j+0.5)*stepx)**2 * hx(i, j-1, pr) - ((j-0.5)*stepx)**2 * hx(i, j-1, pr) + g[i, j-1]
+                #g[i, j] = 2 * stepx**2 * hx(i, j-1, pr) + g[i, j-1]
+                pr = deltaP - (deltaP * (j*stepx/geom.x))
+                g[i, j] =  ((j+0.5)**2 - (j-0.5)**2) * stepx**2 * hx(i, j-1, deltaP) + g[i, j-1]
             # Fix for lims' last step
-            #g[i, -1] = stepx**2 * (geom.xnodes-1)**2 * hx(i, j, pr)
+            g[i, -1] = stepx**2 * (geom.xnodes-1)**2 * hx(i, j, deltaP)
 
     return g, p
 
 
 def ft_lims(geom, fname='run1'):
-    """call lims and return the flow time based on the given parameters
+    '''call lims and return the flow time based on the given parameters
 
     Args:
         geom (Geometry) : Geometry class object
 
     Kwargs:
         fname (string) : filename for the run
-    """
+    '''
     from lims import lims_wrapper as lw
     from numpy import arange, mgrid
 

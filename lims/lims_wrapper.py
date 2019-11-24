@@ -2,7 +2,7 @@
 '''
 import logging
 
-run_loc = '../runs/'
+run_loc = 'runs/'
 
 def create_lb(fname, gatenodes, deltaP):
     '''creates the lb file
@@ -12,7 +12,6 @@ def create_lb(fname, gatenodes, deltaP):
         gatenodes (list): is the gate node array
         deltaP (float): is the deltaP from equation
     '''
-
     lb = fname + '.lb'
     dmp = fname + '.dmp'
     res = fname + '_res.dmp'
@@ -59,6 +58,8 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
     from numpy import arange, mgrid
 
     # TODO: add kxx, kxy, kyy, krt shape checking
+    if krt is None or kxx is None  or kxy is None or kyy is None:
+        raise ValueError('k values cannot be None. Either set to 0 or give a value')
 
     model = 'NEWTON'
     viscosity = mu
@@ -98,7 +99,6 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
             f.write('{:>7.3f}{:>16.6f}{:> 16.4e}{:> 16.4e}{:> 16.4e}'.format(height, vf, kxx[i,j], kxy[i,j], kyy[i,j]))
             f.write('\r\n')
             t += 1
-
     if krt is not 0:
         for j in range(0, nodes[1]-1):
             f.write('{:>6}{:>5}{:>6}{:>6}'.format(t, 2, g[-1, j+1], g[-1, j]))
@@ -121,7 +121,7 @@ def run_lims(lb):
     from tempfile import NamedTemporaryFile
     import platform
 
-    limscmd = ['../lims/lims', '-l' + lb]
+    limscmd = ['lims/lims', '-l' + lb]
 
     if platform.system() == 'Darwin' or platform.system() == 'Linux':
         limscmd.insert(0, 'wine')

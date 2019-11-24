@@ -152,8 +152,8 @@ class Geometry():
     def __set_krt(self, krt):
         '''set krt values
         '''
-        if krt is not 0:
-            raise NotImplementedError('ERROR >> krt is not yet implemented')
+        if krt is not 0 and self.backend != 'LIMS':
+            print('WARNING >> krt is not yet implemented')
         self.krt = krt
 
 
@@ -279,39 +279,3 @@ class Geometry():
             plt.legend(['row' + str(i+1) for i in range(self.ynodes)])
 
         plt.show()
-
-
-    def test(self, printfill=True, showflow=True, plotfill=True, printpressure=True, plotpressure=True):
-        '''calculate flowfront with default values with the given geometry size/ndoes
-
-        Kwargs:
-            printflow (bool): Print flowfront values
-            showflow  (bool): Show flowfront
-            plotfill (bool): Plot filltime of each node
-        '''
-        from numpy import full
-
-        try:
-            self.set_gatenodes('w')
-            self.set_coeffs(mu=0.1, fi=0.5, deltaP=1E5)
-            self.set_backend('PYT')
-
-            kxx = full(self.xnodes, 1e-10)
-            kxx[self.xnodes//2:] = 2e-10
-
-            self.set_permeability(kxx=kxx, kyy=None, kxy=None, krt=None)
-            self.get_flowfront()
-            if printfill:
-                self.print_filltime()
-            if showflow:
-                self.show_flowfront()
-            if plotfill:
-                self.plot_filltime(showlegend=True)
-            if printpressure:
-                self.print_pressure()
-            if plotpressure:
-                self.plot_pressure(showlegend=True)
-
-        except Exception as e:
-            print(e)
-            exit()
