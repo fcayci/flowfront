@@ -8,9 +8,9 @@ Description:
 
 Usage:
 ------
-  test_sweep1p.py -b <backend> -w <nodelocs>
+  test_sweep1p.py -b <backend> -w <gatelocs>
     backends: LIMS, PYT
-    nodelocs: w, n, s, nw, sw, ww
+    gatelocs: w, n, s, nw, sw, ww
     -v for verbose
 '''
 
@@ -28,28 +28,25 @@ except getopt.GetoptError:
     print(__doc__)
     sys.exit(2)
 
-backend = None
-nodeloc = None
+backend = 'PYT'
+gateloc = 'w'
 verbose = False
+
+# Update backend and gatelocs if parameters are passed
 for o, a in opts:
     if o == '-b':
         backend = a
     if o == '-w':
-        nodeloc = a
+        gateloc = a
     if o == '-v':
         verbose = True
-
-if backend is None:
-    backend = 'PYT'
-if nodeloc is None:
-    nodeloc = 'w'
 
  # create array of values for kxx testing
 xsamples = 101
 kxx_list = np.logspace(-14, -8, xsamples)
 
 target = Geometry(size=(0.2, 0.4), nodes=(11, 21))
-target.set_gatenodes(nodeloc)
+target.set_gatenodes(gateloc)
 target.set_coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 target.set_backend(backend)
 

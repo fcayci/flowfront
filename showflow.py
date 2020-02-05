@@ -23,9 +23,11 @@ except getopt.GetoptError:
     print(__doc__)
     sys.exit(2)
 
-backend = None
-gateloc = None
+backend = 'LIMS'
+gateloc = 'mw'
 verbose = False
+
+# Update backend and gatelocs if parameters are passed
 for o, a in opts:
     if o == '-b':
         backend = a
@@ -33,11 +35,6 @@ for o, a in opts:
         gateloc = a
     if o == '-v':
         verbose = True
-
-if backend is None:
-    backend = 'LIMS'
-if gateloc is None:
-    gateloc = 'mw'
 
 # set geometry size and number of nodes (y, x)
 g = Geometry(size=(0.2, 0.4), nodes=(11, 21))
@@ -51,8 +48,6 @@ g.set_coeffs(mu=0.1, fi=0.5, deltaP=1e5)
 # set backend for flowfront calculation: PYT, LIMS
 g.set_backend(backend)
 
-# create a uniform kxx array
-#kxx = 14.31 * 1e-11
 kxx = 1 * 1e-10
 kxy = 4 * 1e-11
 kyy = 2 * 1e-10
@@ -61,10 +56,14 @@ krt = 5 * 1e-9
 g.set_permeability(kxx=kxx, kxy=kxy, kyy=kyy, krt=krt)
 
 # create and place a signal defect point
-defx = 11 #np.random.randint(3, g.xnodes-3)
-defy = 4 #np.random.randint(3, g.ynodes-3)
-print('placed defect on: x:{} and y:{} nodes'.format(defy, defx))
+defx = 11
+defy = 4
+# or we can randomly place it somewhere
+# defx = np.random.randint(3, g.xnodes-3)
+# defy = np.random.randint(3, g.ynodes-3)
 g.kxx[defy, defx] = 62.32 * 1e-14
+
+print('placed defect on: x:{} and y:{} nodes'.format(defy, defx))
 
 # calculate flowfront
 g.get_flowfront()
@@ -77,4 +76,4 @@ if verbose:
 # display flowfront and fill times
 g.show_flowfront()
 g.plot_filltime(showlegend=True)
-# g.plot_pressure(showlegend=True)
+g.plot_pressure(showlegend=True)

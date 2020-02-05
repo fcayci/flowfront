@@ -82,7 +82,7 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
             f.write('{:>6}{:>15.6f}{:>15.6f}{:>15.6}\r\n'.format(i*nodes[1]+j+1, x[i,j], y[i, j], 0.0))
 
     elements = (len(y)-1)*(len(y[0])-1)
-    if krt is not 0:
+    if krt != 0:
         elements += len(y[0]) -1
     f.write('Number of elements : ' + str(elements) + '\r\n')
     f.write('  Index  NNOD  N1    N2    N3   (N4)  (N5)  (N6)  (N7)  (N8)    h              Vf             Kxx             Kxy             Kyy           Kzz           Kzx            Kyz\r\n')
@@ -99,7 +99,7 @@ def create_dmp(fname, boardsize, nodes, mu, fi, deltaP, kxx, kyy, kxy, krt):
             f.write('{:>7.3f}{:>16.6f}{:> 16.4e}{:> 16.4e}{:> 16.4e}'.format(height, vf, kxx[i,j], kxy[i,j], kyy[i,j]))
             f.write('\r\n')
             t += 1
-    if krt is not 0:
+    if krt != 0:
         for j in range(0, nodes[1]-1):
             f.write('{:>6}{:>5}{:>6}{:>6}'.format(t, 2, g[-1, j+1], g[-1, j]))
             f.write('                                         ')

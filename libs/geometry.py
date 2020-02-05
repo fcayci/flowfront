@@ -1,4 +1,5 @@
 '''Holds Geometry class for problem setup
+   Currently only supports rectangular geometry.
 '''
 import logging
 
@@ -152,7 +153,7 @@ class Geometry():
     def __set_krt(self, krt):
         '''set krt values
         '''
-        if krt is not 0 and self.backend != 'LIMS':
+        if krt != 0 and self.backend != 'LIMS':
             print('WARNING >> krt is not yet implemented')
         self.krt = krt
 
