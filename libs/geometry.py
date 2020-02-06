@@ -187,11 +187,9 @@ class Geometry():
             raise AttributeError('ERROR >> At least kxx or kyy should be set')
 
         if self.backend == 'LIMS':
-            logging.info('>> Calculating flowfront in LIMS')
             self.ft, self.pr = ft_lims(self, fname)
 
         elif self.backend == 'PYT':
-            logging.info('>> Calculating flowfront in python')
             self.ft, self.pr = ft_1d(self)
 
 
