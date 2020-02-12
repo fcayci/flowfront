@@ -1,66 +1,94 @@
-# author: Furkan Cayci
-# description:cost function plotter for 2 parameters
-#   sets random kxx and krt based target flowfront,
-#   then iterates through the given boundaries for
-#   search kxx, krt and plots the resulting cost functions
+'''cost function plotter for 1 permeability value (kxx)
 
+Description:
+------------
+  sets a random kxx based target flowfront,
+  then iterates through the given boundaries for
+  search kxx and plots the resulting cost functions
+
+Usage:
+------
+  test_sweep1p.py -b <backend> -w <gatelocs>
+    backends: LIMS, PYT
+    gatelocs: w, n, s, nw, sw, ww
+    -v for verbose
+'''
+
+import sys, getopt
 import numpy as np
-from common import *
-from lims_common import *
 import matplotlib.pyplot as plt
-import time
+import copy
 
-BOARDSIZE = (0.2, 0.4) # board size in meters (y, x)
-NODESIZE  = (11, 21)   # number of nodes in each direction (y, x)
-costs = []             # array to hold the costs for each run
-backend = 'LIMS'       # choose backend : LIMS or XXX
-xsamples = 101         # number of samples for kxx testing
-rsamples = 101         # number of samples for krt testing
+from libs.geometry import *
+from libs.flowfront import *
 
-kx = np.logspace(-14, -8, xsamples)
-kr = np.logspace(-14, -8, rsamples)
+try:
+    opts, args = getopt.getopt(sys.argv[1:], 'b:w:v')
+except getopt.GetoptError:
+    print(__doc__)
+    sys.exit(2)
 
-c = Coeffs(mu=0.1, fi=0.5, deltaP=1e5)
-# set up the gates
-# w  : west
-# nw : north west
-# sw : south west
-gatenodes = set_gatenodes(NODESIZE, 'w')
+backend = 'LIMS'
+gateloc = 'mw'
+verbose = False
 
-### Create target flowfront
-p_t = PMap(kxx=1.421e-12, krt=4.63e-12)
+# Update backend and gatelocs if parameters are passed
+for o, a in opts:
+    if o == '-b':
+        backend = a
+    if o == '-w':
+        gateloc = a
+    if o == '-v':
+        verbose = True
 
-if backend == 'LIMS':
-    ft_t = lims_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
-else:
-    ft_t = calculate_flowtime(BOARDSIZE, NODESIZE, p_t, c, 'target', gatenodes)
+ # create array of values for kxx testing
+xsamples = 100
+ysamples = 10
+kx_list = np.logspace(-14, -8, xsamples)
+ky_list = np.logspace(-14, -8, ysamples)
 
-start = time.time()
-for rx in range(len(kx)):
-    for rr in range(len(kr)):
-        ### Create target flowfront
-        p = PMap(kxx=kx[rx], krt=kr[rr])
-        # randomize kxx over the given bounds
-        #p_t.randomize(lower=1e-14, upper=1e-8)
+target = Geometry(size=(0.2, 0.4), nodes=(11, 21))
+target.set_gatenodes(gateloc)
+target.set_coeffs(mu=0.1, fi=0.5, deltaP=1e5)
+target.set_backend(backend)
 
-        # calculate target flow time
-        if backend == 'LIMS':
-            ft = lims_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
-        else:
-            ft = calculate_flowtime(BOARDSIZE, NODESIZE, p, c, 'trial', gatenodes)
+# deep copy target geometry
+trial = copy.deepcopy(target)
 
-        # if something is not filled, just skip it
-        if np.count_nonzero(ft) < (NODESIZE[1]-1) * NODESIZE[0]:
-            pass
-        else:
-            cost = np.linalg.norm(ft_t - ft, 2)
-            costs.append(cost)
+kxx = np.random.uniform(1, 1e6) * 1e-14
+print('Target kxx:', kxx)
+kyy = np.random.uniform(1, 1e6) * 1e-14
+print('Target kyy:', kyy)
+kxy = np.sqrt(kxx * kyy) - kxx
+print('Target kxy:', kxy)
+target.set_permeability(kxx=kxx, kyy=kyy, kxy=kxy)
+target.get_flowfront('target')
 
-print(len(costs), len(kx), len(kr))
-print('took {} seconds'.format(time.time() - start))
-plt.semilogy(costs)
-plt.title('2 parameter sweep on kxx and krt\n for target kxx_t={:4.3e} and krt_t={:4.3e}'.format(p_t.kxx, p_t.krt))
-plt.xlabel('# of trials')
-plt.ylabel('cost (l2norm of target and calculated flowfronts)')
-#plt.show()
-plt.savefig('sweep2d.png')
+if verbose:
+    print('Target flowfront:')
+    target.print_filltime()
+
+costs = np.ndarray((xsamples, ysamples))
+for i, kx in enumerate(kx_list):
+    for j, ky in enumerate(ky_list):
+        trial.set_permeability(kxx=kx, kyy=ky, kxy=np.sqrt(kx*ky)/2)
+        trial.get_flowfront('trial')
+        cost = np.linalg.norm(target.ft - trial.ft, 2)
+        costs[i, j] = cost
+        print('#', end='')
+
+# hacky way to get the 2 precision numbers from the array to display...
+#xpts = np.arange(0, xsamples, xsamples//10)
+#labels = np.array2string(k_list[xpts], precision=2).strip('][').split(' ')
+
+#print(costs)
+plt.imshow(costs)
+plt.colorbar()
+#plt.semilogy(costs)
+plt.title('2 parameter sweep on kxx and kyy for target kxx={:4.3e} and kyy={:4.3e}'.format(target.kxx[0,0], target.kyy[0,0]))
+#plt.xlabel('kxx')
+#plt.xticks(xpts, labels, rotation=30)
+#plt.ylabel('cost (l2norm of target and calculated flowfronts)')
+plt.xlabel('kyy')
+plt.ylabel('kxx')
+plt.show()
