@@ -1,4 +1,4 @@
-'''Show flowfront for given permeability values
+""" Show flowfront for given permeability values
 
 Description:
 ------------
@@ -10,12 +10,15 @@ Usage:
     backends: LIMS, PYT
     gatelocs: w, n, s, nw, sw, mw
     -v for verbose
-'''
+"""
+
 import numpy as np
 import sys, getopt
 
-from libs.geometry import *
-from libs.flowfront import *
+from lims.lims_wrapper import get_flowtime as lims
+from libs.mesh import *
+from common.plots import *
+
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'b:g:v')
@@ -23,9 +26,7 @@ except getopt.GetoptError:
     print(__doc__)
     sys.exit(2)
 
-backend = 'LIMS'
-gateloc = 'mw'
-verbose = False
+gateloc = 'w'
 
 # Update backend and gatelocs if parameters are passed
 for o, a in opts:
@@ -33,47 +34,26 @@ for o, a in opts:
         backend = a
     if o == '-g':
         gateloc = a
-    if o == '-v':
-        verbose = True
 
-# set geometry size and number of nodes (y, x)
-g = Geometry(size=(0.2, 0.4), nodes=(11, 21))
 
-# set the gate locations: w, nw, sw, ww
-g.set_gatenodes(gateloc)
+if __name__ == "__main__":
 
-# set coefficients
-g.set_coeffs(mu=0.1, fi=0.5, deltaP=1e5)
+    size = (.2, .4)
+    nodes = (11, 21)
+    m = Mesh(size, nodes)
+    m.create_mesh()
+    #g.set_coeffs(mu=0.1, fi=0.5, deltaP=1e5)
+    m.set_gate_nodes(gateloc)
+    # Set all cells to the same values
+    m.set_kxx(1e-10)
+    m.set_kxy(4e-11)
+    m.set_kyy(2e-10)
+    # Individual cells can be changed by passing cell parameter
+    #m.set_kxx(1e-10, cell=3)
+    #krt = 5 * 1e-9
 
-# set backend for flowfront calculation: PYT, LIMS
-g.set_backend(backend)
+    ft, pr = lims(m, 'run2')
 
-kxx = 1 * 1e-10
-kxy = 4 * 1e-11
-kyy = 2 * 1e-10
-krt = 5 * 1e-9
-# set permeability of the geometry
-g.set_permeability(kxx=kxx, kxy=kxy, kyy=kyy, krt=krt)
-
-# create and place a signal defect point
-defx = 11
-defy = 4
-# or we can randomly place it somewhere
-# defx = np.random.randint(3, g.xnodes-3)
-# defy = np.random.randint(3, g.ynodes-3)
-g.kxx[defy, defx] = 62.32 * 1e-14
-
-print('placed defect on: x:{} and y:{} nodes'.format(defy, defx))
-
-# calculate flowfront
-g.get_flowfront()
-
-# print flowfront
-if verbose:
-    g.print_filltime()
-    g.print_pressure()
-
-# display flowfront and fill times
-g.show_flowfront()
-g.plot_filltime(showlegend=True)
-g.plot_pressure(showlegend=True)
+    plot_filltime(ft)
+    show_flowfront(ft)
+    plot_pressure(pr)
