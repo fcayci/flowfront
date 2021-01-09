@@ -34,9 +34,16 @@ for o, a in opts:
     if o == '-g':
         gateloc = a
 
+rng = np.random.default_rng()
+
+N = 100
 defradius = 1
 ynodes = 21
 xnodes = 51
+
+name = ''
+name += str(xnodes) + 'x' + str(ynodes) + '_'
+name += 'rad_' + str(defradius)
 
 deltaP = 1e5
 size = (.2, .5)
@@ -45,31 +52,44 @@ m = Mesh(size, nodes)
 m.create_mesh()
 m.set_gate_nodes(gateloc, dP=deltaP)
 
-# defect list
-klist = np.logspace(-10, -8, 1)
 
-name = 'def1_' + str(defradius) + 'x' + str(defradius) + '_'
+fts = []
+ns = []
 
-rng = np.random.default_rng()
+for i in range(N):
 
-# import matplotlib.pyplot as plt
-# a = [rng.lognormal() * 1e-10 for i in range(1000)]
-# plt.loglog(a)
-# plt.show()
-# raise
-
-for i, ki in enumerate(klist):
     # Set all cells to the same values
-    m.set_kxx(1e-11)
-    m.set_kxy(4e-13)
-    m.set_kyy(1e-11)
-    r = rng.lognormal() * 1e-10
+    m.set_kall(kxx=1e-11, kyy=1e-11, kxy=1e-12)
+
+    # Generate random numbers
+    k  = rng.lognormal() * 1e-10
+    kp = rng.lognormal() * 1e-10
     x = rng.integers(1, xnodes)
     y = rng.integers(1, ynodes)
-    m.set_kxx(r, x, y, defradius)
-    m.set_kyy(r, x, y, defradius)
-    n = '{}run{:04}_{:.1e}'.format(name, i+1, ki)
-    m.run(n)
-    m.show_kmaps()
-    m.show_flowfront()
 
+    if k < kp:
+        temp = k
+        k = kp
+        kp = temp
+
+    # Update permeabilities for random nodes with defradius
+    m.set_kall(kxx=k, kyy=k, kxy=kp, x=x, y=y, r=defradius)
+
+    # Run lims
+    n = '{}_dx_{}_dy_{}_kx_{:.3f}_ky_{:.3f}_kxy_{:.3f}'.format(name, x, y, k*1e12, k*1e12, kp*1e12)
+    m.run('run')
+
+    fts.append(m.ft)
+    ns.append(n)
+
+    # Comment out to only generate
+    #m.show_kmaps()
+    #m.show_flowfront()
+    #m.save(n)
+
+sd = dict()
+
+for i, n in enumerate(ns):
+    sd[n] = fts[i]
+
+np.savez("runs/def1.npz", **sd)

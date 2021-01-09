@@ -293,7 +293,7 @@ class Mesh():
 
     def set_kxy(self, k, x=-1, y=-1, r=1):
         """
-        Set Kxy
+        Set Kxy. Should be sqrt(kxx * kyy) > kxy
 
         Parameters
         ----------
@@ -315,21 +315,99 @@ class Mesh():
         if x < 0 and y < 0:
             for r in self.cells:
                 for c in r:
-                    c.kxy = k
+                    if np.sqrt(c.kxx * c.kxy) < c.kxy:
+                        print("kxy is too big")
+                    else:
+                        c.kxy = k
 
         elif x < 0:
             for c in self.cells[y]:
-                c.kxy = k
+                if np.sqrt(c.kxx * c.kxy) < c.kxy:
+                    print("kxy is too big")
+                else:
+                    c.kxy = k
 
         elif y < 0:
             for r in self.cells:
-                r[x].kxy = k
+                if np.sqrt(r[x].kxx * r[x].kxy) < r[x].kxy:
+                    print("kxy is too big")
+                else:
+                    r[x].kxy = k
 
         else:
             try:
                 for i in range(-r+1, r):
                     for j in range(-r+1, r):
-                        self.cells[y+j, x+i].kxy = k
+                        c = self.cells[y+j, x+i]
+                        if np.sqrt(c.kxx * c.kxy) < c.kxy:
+                            print("kxy is too big")
+                        else:
+                            c.kxy = k
+            # just ignore out of bounds
+            except IndexError:
+                pass
+
+
+    def set_kall(self, kxx, kyy, kxy=None, x=-1, y=-1, r=1):
+        """
+        Set all kxx at the same time
+
+        Parameters
+        ----------
+        kxx : float
+            permeability value
+        kyy : float
+            permeability value
+        kxy : float
+            permeability value
+        x : int
+            x index
+        y : int
+            y index
+        r : int
+            radius
+
+        Returns
+        -------
+        None
+
+        """
+
+        if kxy is not None:
+            if np.sqrt(kxx * kxy) < kxy:
+                print('ERROR: kxy is too big. Not setting')
+                return
+
+        if x < 0 and y < 0:
+            for r in self.cells:
+                for c in r:
+                    c.kxx = kxx
+                    c.kyy = kyy
+                    if kxy is not None:
+                        c.kxy = kxy
+
+        elif x < 0:
+            for c in self.cells[y]:
+                c.kxx = kxx
+                c.kyy = kyy
+                if kxy is not None:
+                    c.kxy = kxy
+
+        elif y < 0:
+            for r in self.cells:
+                r[x].kxx = kxx
+                r[x].kyy = kyy
+                if kxy is not None:
+                    r[x].kxy = kxy
+
+        else:
+            try:
+                for i in range(-r+1, r):
+                    for j in range(-r+1, r):
+                        self.cells[y+j, x+i].kxx = kxx
+                        self.cells[y+j, x+i].kyy = kyy
+                        if kxy is not None:
+                            self.cells[y+j, x+i].kxy = kxy
             # just ignore out of bounds
             except IndexError:
                 pass
@@ -419,3 +497,7 @@ class Mesh():
 
         pl(self.pr)
 
+    def save(self, fname):
+
+        print(self.ft)
+        #np.save('runs/' + fname, self.ft)

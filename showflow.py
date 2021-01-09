@@ -48,10 +48,14 @@ m.set_kxy(4e-12)
 m.set_kyy(2e-11)
 
 # Individual cells can be changed by passing x and/or y parameters
-m.set_kxx(3e-10, x=5) # all cells with x = 5
-m.set_kyy(4e-10, y=3) # all cells with y = 3
-m.set_kyy(5e-10, x=5, y=8) # cell with x = 5, y = 8
-m.set_kxx(4e-10, x=5, y=3, r=2) # radius = 2
+#m.set_kxx(3e-10, x=5) # all cells with x = 5
+#m.set_kyy(4e-10, y=3) # all cells with y = 3
+#m.set_kyy(5e-10, x=5, y=8) # cell with x = 5, y = 8
+#m.set_kxx(4e-10, x=5, y=3, r=2) # radius = 2
+
+# all the values can be passed using single call
+m.set_kall(kxx=3e-10, kyy=4e-10, kxy=2e-11, x=5, y=8, r=2)
+
 
 m.run('run2')
 m.show_flowfront()
