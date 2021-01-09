@@ -88,3 +88,46 @@ def show_flowfront(ft):
     plt.colorbar()
     plt.show()
 
+
+def show_kmaps(m):
+    """
+    Show K maps
+
+    Parameters
+    ----------
+    m: Mesh
+        Mesh data to be shown
+
+    Returns
+    -------
+    None
+
+    """
+
+    from copy import copy
+
+    cmap = copy(plt.cm.get_cmap("tab20b"))
+    cmap.set_under(color='black')
+
+    kxx = m.get_cell_kxx()
+    kyy = m.get_cell_kyy()
+    kxy = m.get_cell_kxy()
+
+    fig, (ax1, ax2, ax3) = plt.subplots(3)
+    fig.suptitle('K maps for the mesh')
+
+    #im = ax1.imshow(kxx, cmap=cmap, interpolation="bilinear", origin="lower")
+    im = ax1.imshow(kxx, cmap=cmap, origin="lower")
+    fig.colorbar(im, ax=ax1)
+    ax1.set_title('Kxx')
+
+    ax2.imshow(kyy, cmap=cmap, origin="lower")
+    fig.colorbar(im, ax=ax2)
+    ax2.set_title('Kyy')
+
+    ax3.imshow(kxy, cmap=cmap, origin="lower")
+    fig.colorbar(im, ax=ax3)
+    ax3.set_title('Kxy')
+
+    plt.show()
+

@@ -1,15 +1,15 @@
-""" Show flowfront for given permeability values
+"""
+Show flowfront for given permeability values
 
-Description:
-------------
+Description
+-----------
   display flowfront for given permeability values.
 
-Usage:
-------
-  showflow.py -b <backend> -g <gatelocs>
-    backends: LIMS, PYT
+Usage
+-----
+  showflow.py -g <gatelocs>
     gatelocs: w, n, s, nw, sw, mw
-    -v for verbose
+
 """
 
 import numpy as np
@@ -21,39 +21,41 @@ from common.plots import *
 
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'b:g:v')
+    opts, args = getopt.getopt(sys.argv[1:], 'g')
 except getopt.GetoptError:
     print(__doc__)
     sys.exit(2)
+
 
 gateloc = 'w'
 
 # Update backend and gatelocs if parameters are passed
 for o, a in opts:
-    if o == '-b':
-        backend = a
     if o == '-g':
         gateloc = a
 
 
-if __name__ == "__main__":
+deltaP = 1e5
+size = (.2, .4)
+nodes = (11, 21)
+m = Mesh(size, nodes)
+m.create_mesh()
+m.set_gate_nodes(gateloc, dP=deltaP)
 
-    size = (.2, .4)
-    nodes = (11, 21)
-    m = Mesh(size, nodes)
-    m.create_mesh()
-    #g.set_coeffs(mu=0.1, fi=0.5, deltaP=1e5)
-    m.set_gate_nodes(gateloc)
-    # Set all cells to the same values
-    m.set_kxx(1e-10)
-    m.set_kxy(4e-11)
-    m.set_kyy(2e-10)
-    # Individual cells can be changed by passing cell parameter
-    #m.set_kxx(1e-10, cell=3)
-    #krt = 5 * 1e-9
+# Set all cells to the same values
+m.set_kxx(1e-11)
+m.set_kxy(4e-12)
+m.set_kyy(2e-11)
 
-    ft, pr = lims(m, 'run2')
+# Individual cells can be changed by passing x and/or y parameters
+m.set_kxx(3e-10, x=5) # all cells with x = 5
+m.set_kyy(4e-10, y=3) # all cells with y = 3
+m.set_kyy(5e-10, x=5, y=8) # cell with x = 5, y = 8
+m.set_kxx(4e-10, x=5, y=3, r=2) # radius = 2
 
-    plot_filltime(ft)
-    show_flowfront(ft)
-    plot_pressure(pr)
+m.run('run2')
+m.show_flowfront()
+m.show_kmaps()
+#m.plot_filltime()
+#m.plot_pressure()
+

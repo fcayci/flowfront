@@ -127,8 +127,14 @@ def create_dmp(m, fname):
     f.write('===================================================\r\n')
 
 
-    for n in m.nodes.reshape(m.numOfNodes):
-        f.write(f"{n.idx:>6}{n.x:>15.6f}{n.y:>15.6f}{n.z:>15.6}\r\n")
+    for n in m.nodes.flatten():
+        _x = n.x * m.step[1]
+        _y = n.y * m.step[0]
+        try:
+            _z = n.z * m.step[2]
+        except:
+            _z = 0.0
+        f.write(f"{n.idx:>6}{_x:>15.6f}{_y:>15.6f}{_z:>15.6}\r\n")
 
 #
 # WRITE Cells
@@ -140,7 +146,7 @@ def create_dmp(m, fname):
     f.write('  Index  NNOD  N1    N2    N3   (N4)  (N5)  (N6)  (N7)  (N8)    h              Vf             Kxx             Kxy             Kyy           Kzz           Kzx            Kyz\r\n')
     f.write('==============================================================================================================================================================================\r\n')
 
-    for c in m.cells:
+    for c in m.cells.flatten():
         l = len(c.nodes)
         f.write(f"{c.idx:>6}{l:>5}{c.nodes[0].idx:>6}{c.nodes[1].idx:>6}{c.nodes[2].idx:>6}{c.nodes[3].idx:>6}")
         f.write("                             ")
