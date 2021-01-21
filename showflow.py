@@ -51,16 +51,20 @@ m.set_kyy(2e-11)
 #m.set_kxx(3e-10, x=5) # all cells with x = 5
 #m.set_kyy(4e-10, y=3) # all cells with y = 3
 #m.set_kyy(5e-10, x=5, y=8) # cell with x = 5, y = 8
-#m.set_kxx(4e-10, x=5, y=3, r=2) # radius = 2
+m.set_kxx(4e-10, x=5, y=3, rx=2) # rx = 2
 
 # all the values can be passed using single call
-m.set_kall(kxx=3e-10, kyy=4e-10, kxy=2e-11, x=5, y=8, r=2)
+m.set_kall(kxx=3e-10, kyy=4e-10, kxy=2e-11, x=5, y=8, rx=2, ry=2)
 
-m.delete_cells(x=6, y=6, r=1)
+# Delete 3x5 cells from 5,2 origin
+#m.delete_cells(x=5, y=2, rx=3, ry=5)
+# Delete 3x3 cell from 10,3 origin
+#m.delete_cells(x=10, y=3, rx=3, ry=3)
+
 
 m.run('run2')
 m.show_flowfront()
 m.show_kmaps()
-m.plot_filltime()
-m.plot_pressure()
+#m.plot_filltime()
+#m.plot_pressure()
 

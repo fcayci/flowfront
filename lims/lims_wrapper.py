@@ -8,7 +8,7 @@ from libs.mesh import *
 run_loc = 'runs/'
 
 
-def get_flowtime(m, fname='run1'):
+def get_flowtime(m, fname):
     """
     Call lims and return the flow time based on the given parameters
 
@@ -146,14 +146,15 @@ def create_dmp(m, fname):
     f.write('  Index  NNOD  N1    N2    N3   (N4)  (N5)  (N6)  (N7)  (N8)    h              Vf             Kxx             Kxy             Kyy           Kzz           Kzx            Kyz\r\n')
     f.write('==============================================================================================================================================================================\r\n')
 
+    i = 1
     for c in m.cells.flatten():
         if c.active:
             l = len(c.nodes)
-            f.write(f"{c.idx:>6}{l:>5}{c.nodes[0].idx:>6}{c.nodes[1].idx:>6}{c.nodes[2].idx:>6}{c.nodes[3].idx:>6}")
+            #f.write(f"{c.idx:>6}{l:>5}{c.nodes[0].idx:>6}{c.nodes[1].idx:>6}{c.nodes[2].idx:>6}{c.nodes[3].idx:>6}")
+            f.write(f"{i:>6}{l:>5}{c.nodes[0].idx:>6}{c.nodes[1].idx:>6}{c.nodes[2].idx:>6}{c.nodes[3].idx:>6}")
             f.write("                             ")
             f.write(f"{c.h:>7.3f}{c.Vf:>16.6f}{c.kxx:> 16.4e}{c.kxy:> 16.4e}{c.kyy:> 16.4e}\r\n")
-        else:
-            print(f'not active {c.idx}')
+            i += 1
 
     # if krt != 0:
     #     for j in range(0, nodes[1]-1):

@@ -79,12 +79,15 @@ def show_flowfront(ft):
 
     from copy import copy
 
-    cmap = copy(plt.cm.get_cmap("tab20b"))
-    cmap.set_under(color='black')
+    #cmap = copy(plt.cm.get_cmap("tab20b"))
+    cmap = copy(plt.cm.get_cmap("jet"))
+    cmap.set_under(color='white')
 
     plt.title('flowfront')
-    #plt.imshow(ft, cmap=cmap, interpolation="bilinear", origin="lower", vmin=0.0000001)
-    plt.imshow(ft, cmap=cmap, origin="lower", vmin=0.0000001)
+    #plt.imshow(ft, cmap=cmap, interpolation="bilinear", origin="lower", vmin=1e-12)
+    plt.imshow(ft, cmap=cmap, origin="lower", vmin=1e-12)
+    plt.xlim(0.5, ft.shape[1]-.5)
+    plt.ylim(0.5, ft.shape[0]-.5)
     plt.colorbar()
     plt.show()
 
@@ -118,16 +121,22 @@ def show_kmaps(m):
 
     #im = ax1.imshow(kxx, cmap=cmap, interpolation="bilinear", origin="lower")
     im = ax1.imshow(kxx, cmap=cmap, origin="lower")
-    fig.colorbar(im, ax=ax1)
+    ax1.set_xlim(0, kxx.shape[1]-1)
+    ax1.set_ylim(0, kxx.shape[0]-1)
     ax1.set_title('Kxx')
+    fig.colorbar(im, ax=ax1)
 
     ax2.imshow(kyy, cmap=cmap, origin="lower")
-    fig.colorbar(im, ax=ax2)
+    ax2.set_xlim(0, kyy.shape[1]-1)
+    ax2.set_ylim(0, kyy.shape[0]-1)
     ax2.set_title('Kyy')
+    fig.colorbar(im, ax=ax2)
 
     ax3.imshow(kxy, cmap=cmap, origin="lower")
-    fig.colorbar(im, ax=ax3)
+    ax3.set_xlim(0, kxy.shape[1]-1)
+    ax3.set_ylim(0, kxy.shape[0]-1)
     ax3.set_title('Kxy')
+    fig.colorbar(im, ax=ax3)
 
     plt.show()
 

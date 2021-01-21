@@ -20,12 +20,16 @@ class Cell:
 
     idx: int
     nodes: np.ndarray((4,))
-    h: np.float64 = 0.005
-    Vf: np.float64 = 0.5
+    h: np.float64 = 0.005 # thickness
+    Vf: np.float64 = 0.5 # volume fraction
     kxx: np.float64 = 0.0
     kxy: np.float64 = 0.0
     kyy: np.float64 = 0.0
+    kzx: np.float64 = 0.0
+    kyz: np.float64 = 0.0
+    kzz: np.float64 = 0.0
     active: int  = 1
+    Type: str = 'QUAD'
 
 
 @dataclass
@@ -204,9 +208,13 @@ class Mesh():
             raise ValueError('not a known gate location')
 
 
-    def set_kxx(self, k, x=-1, y=-1, r=1):
+    def set_kxx(self, k, x=-1, y=-1, rx=1, ry=1):
         """
         Set Kxx
+
+        Todo
+        ----
+        We can check boundaries instead of just ignoring the exception
 
         Parameters
         ----------
@@ -216,8 +224,10 @@ class Mesh():
             x index
         y : int
             y index
-        r : int
-            radius
+        rx : int
+            x length for the cells
+        ry : int
+            y length for the cells
 
         Returns
         -------
@@ -240,15 +250,15 @@ class Mesh():
 
         else:
             try:
-                for i in range(-r+1, r):
-                    for j in range(-r+1, r):
+                for i in range(rx):
+                    for j in range(ry):
                         self.cells[y+j, x+i].kxx = k
             # just ignore out of bounds
             except IndexError:
                 pass
 
 
-    def set_kyy(self, k, x=-1, y=-1, r=1):
+    def set_kyy(self, k, x=-1, y=-1, rx=1, ry=1):
         """
         Set Kyy
 
@@ -260,8 +270,10 @@ class Mesh():
             x index
         y : int
             y index
-        r : int
-            radius
+        rx : int
+            x length for the cells
+        ry : int
+            y length for the cells
 
         Returns
         -------
@@ -284,15 +296,15 @@ class Mesh():
 
         else:
             try:
-                for i in range(-r+1, r):
-                    for j in range(-r+1, r):
+                for i in range(rx):
+                    for j in range(ry):
                         self.cells[y+j, x+i].kyy = k
             # just ignore out of bounds
             except IndexError:
                 pass
 
 
-    def set_kxy(self, k, x=-1, y=-1, r=1):
+    def set_kxy(self, k, x=-1, y=-1, rx=1, ry=1):
         """
         Set Kxy. Should be sqrt(kxx * kyy) > kxy
 
@@ -304,8 +316,10 @@ class Mesh():
             x index
         y : int
             y index
-        r : int
-            radius
+        rx : int
+            x length for the cells
+        ry : int
+            y length for the cells
 
         Returns
         -------
@@ -337,8 +351,8 @@ class Mesh():
 
         else:
             try:
-                for i in range(-r+1, r):
-                    for j in range(-r+1, r):
+                for i in range(rx):
+                    for j in range(ry):
                         c = self.cells[y+j, x+i]
                         if np.sqrt(c.kxx * c.kxy) < c.kxy:
                             print("kxy is too big")
@@ -349,7 +363,7 @@ class Mesh():
                 pass
 
 
-    def set_kall(self, kxx, kyy, kxy=None, x=-1, y=-1, r=1):
+    def set_kall(self, kxx, kyy, kxy=None, x=-1, y=-1, rx=1, ry=1):
         """
         Set all kxx at the same time
 
@@ -365,8 +379,10 @@ class Mesh():
             x index
         y : int
             y index
-        r : int
-            radius
+        rx : int
+            x length for the cells
+        ry : int
+            y length for the cells
 
         Returns
         -------
@@ -403,8 +419,8 @@ class Mesh():
 
         else:
             try:
-                for i in range(-r+1, r):
-                    for j in range(-r+1, r):
+                for i in range(rx):
+                    for j in range(ry):
                         self.cells[y+j, x+i].kxx = kxx
                         self.cells[y+j, x+i].kyy = kyy
                         if kxy is not None:
@@ -414,7 +430,7 @@ class Mesh():
                 pass
 
 
-    def delete_cells(self, x, y, r=1):
+    def delete_cells(self, x, y, rx=1, ry=1):
         """
         Delete given cells
 
@@ -424,8 +440,10 @@ class Mesh():
             x index
         y : int
             y index
-        r : int
-            radius
+        rx : int
+            x length for the cells
+        ry : int
+            y length for the cells
 
         Returns
         -------
@@ -447,15 +465,12 @@ class Mesh():
 
         else:
             try:
-                for i in range(-r+1, r):
-                    for j in range(-r+1, r):
+                for i in range(rx):
+                    for j in range(ry):
                         c = self.cells[y+j, x+i]
                         if c.active:
-                            #c.active = 0
-                            #self.numOfCells -= 1
-                            c.kxx = 1
-                            c.kyy = 1
-                            c.kxy = 1
+                            c.active = 0
+                            self.numOfCells -= 1
             # just ignore out of bounds
             except IndexError:
                 pass
@@ -465,9 +480,9 @@ class Mesh():
         pass
 
 
-    def activate_cells(self, x, y, r=1):
+    def activate_cells(self, x, y, rx=1, ry=1):
         """
-        Delete given cells
+        Activate given cells
 
         Parameters
         ----------
@@ -475,8 +490,10 @@ class Mesh():
             x index
         y : int
             y index
-        r : int
-            radius
+        rx : int
+            x length for the cells
+        ry : int
+            y length for the cells
 
         Returns
         -------
@@ -498,8 +515,8 @@ class Mesh():
 
         else:
             try:
-                for i in range(-r+1, r):
-                    for j in range(-r+1, r):
+                for i in range(rx):
+                    for j in range(ry):
                         c = self.cells[y+j, x+i]
                         if not c.active:
                             c.active = 1
