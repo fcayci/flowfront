@@ -11,9 +11,7 @@ Shows how to add defects to given locations.
 import numpy as np
 import sys, getopt
 
-from lims.lims_wrapper import get_flowtime as lims
 from libs.mesh import *
-from common.plots import *
 
 # Gate location is in the west
 # Can be mw for single middle west node

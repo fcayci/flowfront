@@ -11,9 +11,7 @@ Shows how to create cutouts in the mesh.
 import numpy as np
 import sys, getopt
 
-from lims.lims_wrapper import get_flowtime as lims
 from libs.mesh import *
-from common.plots import *
 
 gateloc = 'w'
 

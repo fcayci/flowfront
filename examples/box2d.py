@@ -19,9 +19,7 @@ Optinally pass argument `-g` for gatelocs. Possible values are: w, n, s, nw, sw,
 import numpy as np
 import sys, getopt
 
-from lims.lims_wrapper import get_flowtime as lims
 from libs.mesh import *
-from common.plots import *
 
 
 try:

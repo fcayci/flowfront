@@ -586,7 +586,7 @@ class Mesh():
         Run LIMS
         """
 
-        from lims.lims_wrapper import get_flowtime as lims
+        from libs.lims_wrapper import get_flowtime as lims
 
         self.ft, self.pr = lims(self, fname)
 
