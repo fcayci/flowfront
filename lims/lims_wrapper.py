@@ -147,10 +147,13 @@ def create_dmp(m, fname):
     f.write('==============================================================================================================================================================================\r\n')
 
     for c in m.cells.flatten():
-        l = len(c.nodes)
-        f.write(f"{c.idx:>6}{l:>5}{c.nodes[0].idx:>6}{c.nodes[1].idx:>6}{c.nodes[2].idx:>6}{c.nodes[3].idx:>6}")
-        f.write("                             ")
-        f.write(f"{c.h:>7.3f}{c.Vf:>16.6f}{c.kxx:> 16.4e}{c.kxy:> 16.4e}{c.kyy:> 16.4e}\r\n")
+        if c.active:
+            l = len(c.nodes)
+            f.write(f"{c.idx:>6}{l:>5}{c.nodes[0].idx:>6}{c.nodes[1].idx:>6}{c.nodes[2].idx:>6}{c.nodes[3].idx:>6}")
+            f.write("                             ")
+            f.write(f"{c.h:>7.3f}{c.Vf:>16.6f}{c.kxx:> 16.4e}{c.kxy:> 16.4e}{c.kyy:> 16.4e}\r\n")
+        else:
+            print(f'not active {c.idx}')
 
     # if krt != 0:
     #     for j in range(0, nodes[1]-1):

@@ -25,6 +25,7 @@ class Cell:
     kxx: np.float64 = 0.0
     kxy: np.float64 = 0.0
     kyy: np.float64 = 0.0
+    active: int  = 1
 
 
 @dataclass
@@ -411,6 +412,105 @@ class Mesh():
             # just ignore out of bounds
             except IndexError:
                 pass
+
+
+    def delete_cells(self, x, y, r=1):
+        """
+        Delete given cells
+
+        Parameters
+        ----------
+        x : int
+            x index
+        y : int
+            y index
+        r : int
+            radius
+
+        Returns
+        -------
+        None
+
+        """
+
+        if x < 0:
+            for c in self.cells[y]:
+                if c.active:
+                    c.active = 0
+                    self.numOfCells -= 1
+
+        elif y < 0:
+            for r in self.cells:
+                if r[x].active:
+                    r[x].active = 0
+                    self.numOfCells -= 1
+
+        else:
+            try:
+                for i in range(-r+1, r):
+                    for j in range(-r+1, r):
+                        c = self.cells[y+j, x+i]
+                        if c.active:
+                            #c.active = 0
+                            #self.numOfCells -= 1
+                            c.kxx = 1
+                            c.kyy = 1
+                            c.kxy = 1
+            # just ignore out of bounds
+            except IndexError:
+                pass
+
+
+
+        pass
+
+
+    def activate_cells(self, x, y, r=1):
+        """
+        Delete given cells
+
+        Parameters
+        ----------
+        x : int
+            x index
+        y : int
+            y index
+        r : int
+            radius
+
+        Returns
+        -------
+        None
+
+        """
+
+        if x < 0:
+            for c in self.cells[y]:
+                if not c.active:
+                    c.active = 1
+                    self.numOfCells += 1
+
+        elif y < 0:
+            for r in self.cells:
+                if not r[x].active:
+                    r[x].active = 1
+                    self.numOfCells += 1
+
+        else:
+            try:
+                for i in range(-r+1, r):
+                    for j in range(-r+1, r):
+                        c = self.cells[y+j, x+i]
+                        if not c.active:
+                            c.active = 1
+                            self.numOfCells += 1
+            # just ignore out of bounds
+            except IndexError:
+                pass
+
+
+
+        pass
 
 
     def set_racetrack(self, krt, loc='n'):

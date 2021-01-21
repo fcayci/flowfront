@@ -56,10 +56,11 @@ m.set_kyy(2e-11)
 # all the values can be passed using single call
 m.set_kall(kxx=3e-10, kyy=4e-10, kxy=2e-11, x=5, y=8, r=2)
 
+m.delete_cells(x=6, y=6, r=1)
 
 m.run('run2')
 m.show_flowfront()
 m.show_kmaps()
-#m.plot_filltime()
-#m.plot_pressure()
+m.plot_filltime()
+m.plot_pressure()
 
