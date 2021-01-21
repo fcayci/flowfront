@@ -39,6 +39,6 @@ m.delete_cells(x=5, y=2, rx=3, ry=5)
 m.delete_cells(x=10, y=3, rx=3, ry=3)
 
 
-m.run('run2')
+m.run('box2d_cutout')
 m.show_flowfront()
 

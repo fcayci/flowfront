@@ -55,7 +55,7 @@ m.set_kxx(1e-11)
 m.set_kxy(4e-12)
 m.set_kyy(2e-11)
 
-m.run('run2')
+m.run('box2d')
 m.show_flowfront()
 m.show_kmaps()
 m.plot_filltime()
