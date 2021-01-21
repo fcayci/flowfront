@@ -172,11 +172,12 @@ def create_dmp(m, fname):
 
 
 def run_lims(lb):
+
     from subprocess import run, check_call, STDOUT
     from tempfile import NamedTemporaryFile
     import platform
 
-    limscmd = ['lims/lims', '-l' + lb]
+    limscmd = ['lims', '-l' + lb]
 
     if platform.system() == 'Darwin' or platform.system() == 'Linux':
         limscmd.insert(0, 'wine')
