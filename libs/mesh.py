@@ -391,7 +391,7 @@ class Mesh():
         """
 
         if kxy is not None:
-            if np.sqrt(kxx * kxy) < kxy:
+            if np.sqrt(kxx * kyy) < kxy:
                 print('ERROR: kxy is too big. Not setting')
                 return
 
