@@ -9,6 +9,9 @@ import numpy as np
 from dataclasses import dataclass
 
 
+__all__ = ['Mesh']
+
+
 @dataclass
 class Cell:
     """
@@ -110,6 +113,9 @@ class Mesh():
 
         if self.step[0] != self.step[1]:
             print(f"step x {self.step[0]} does not match step y {self.step[1]}")
+
+        self.ft = np.zeros_like((self.nodes), dtype=float)
+        self.pr = np.zeros_like((self.nodes), dtype=float)
 
 
     def create_mesh(self, nodes=4):
@@ -586,33 +592,34 @@ class Mesh():
         Run LIMS
         """
 
-        from libs.lims_wrapper import get_flowtime as lims
+        from flowfront.libs.lims_wrapper import get_flowtime as lims
 
         self.ft, self.pr = lims(self, fname)
 
 
     def show_flowfront(self):
-        from common.plots import show_flowfront as pl
+        from flowfront.common.plots import show_flowfront as pl
 
         pl(self.ft)
 
 
     def show_kmaps(self):
-        from common.plots import show_kmaps as pl
+        from flowfront.common.plots import show_kmaps as pl
 
         pl(self)
 
 
     def plot_filltime(self):
-        from common.plots import plot_filltime as pl
+        from flowfront.common.plots import plot_filltime as pl
 
         pl(self.ft)
 
 
     def plot_pressure(self):
-        from common.plots import plot_pressure as pl
+        from flowfront.common.plots import plot_pressure as pl
 
         pl(self.pr)
+
 
     def save(self, fname):
 

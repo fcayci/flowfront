@@ -1,9 +1,14 @@
-""" LIMS Wrapper for creating and parsing data files.
+"""
+LIMS Wrapper for creating and parsing data files.
 Accepts mesh object for creating the dmp data file.
 
 """
 
-from libs.mesh import *
+from .mesh import *
+
+
+__all__ = ['get_flowtime', 'create_lb', 'create_dmp', 'run_lims', 'read_res']
+
 
 run_loc = 'runs/'
 
@@ -119,9 +124,9 @@ def create_dmp(m, fname):
 #Check for duplicates: OK\r\n\
 #User Origin x:0 y:0 z:0 unit:\r\n\r\n')
 
-#
-# WRITE NODES
-#
+    #
+    # WRITE NODES
+    #
     f.write('Number of nodes : ' + str(m.numOfNodes) + '\r\n')
     f.write(' Index       x              y              z\r\n')
     f.write('===================================================\r\n')
@@ -136,9 +141,9 @@ def create_dmp(m, fname):
             _z = 0.0
         f.write(f"{n.idx:>6}{_x:>15.6f}{_y:>15.6f}{_z:>15.6}\r\n")
 
-#
-# WRITE Cells
-#
+    #
+    # WRITE Cells
+    #
     elements = m.numOfCells
     #if krt != 0:
     #    elements += len(y[0]) -1

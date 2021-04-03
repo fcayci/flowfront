@@ -19,7 +19,7 @@ Optinally pass argument `-g` for gatelocs. Possible values are: w, n, s, nw, sw,
 import numpy as np
 import sys, getopt
 
-from libs.mesh import *
+from flowfront import *
 
 
 try:

@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+__all__ = ['plot_pressure', 'plot_filltime', 'show_flowfront', 'show_kmaps']
+
+
 def plot_pressure(pr, showlegend=True):
     """
     Plot pressure for all the rows
