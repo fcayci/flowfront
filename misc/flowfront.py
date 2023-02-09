@@ -1,7 +1,7 @@
 '''Flowfront calculation functions
 '''
 
-from libs.geometry import Geometry
+raise DeprecationWarning ("Deprecated. Keeping here in case this works get picked up again")
 
 def ft_1d(geom):
     '''Calculate 1d flowfront
@@ -39,25 +39,3 @@ def ft_1d(geom):
             g[i, -1] = stepx**2 * (geom.xnodes-1)**2 * hx(i, j, deltaP)
 
     return g, p
-
-
-def ft_lims(geom, fname='run1'):
-    '''call lims and return the flow time based on the given parameters
-
-    Args:
-        geom (Geometry) : Geometry class object
-
-    Kwargs:
-        fname (string) : filename for the run
-    '''
-    from lims import lims_wrapper as lw
-    from numpy import arange, mgrid
-
-    if not isinstance(geom, Geometry):
-        raise ValueError('ERROR >> parameter geom is not instance of Geometry')
-
-    lb = lw.create_lb(fname, geom.gatenodes, geom.deltaP)
-
-    lw.create_dmp(fname, geom.size, geom.nodes, geom.mu, geom.fi, geom.deltaP, geom.kxx, geom.kyy, geom.kxy, geom.krt)
-    lw.run_lims(lb)
-    return lw.read_res(fname, geom.nodes)
