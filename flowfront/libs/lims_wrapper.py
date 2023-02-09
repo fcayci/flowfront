@@ -5,6 +5,7 @@ Accepts mesh object for creating the dmp data file.
 """
 
 from .mesh import *
+import numpy as np
 
 
 __all__ = ['get_flowtime', 'create_lb', 'create_dmp', 'run_lims', 'read_res']
